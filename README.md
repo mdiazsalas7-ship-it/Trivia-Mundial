@@ -103,4 +103,4 @@ Colección `salas`, un documento por partida (el ID es el código):
 | `deadline` | Marca de tiempo en que vence el reloj (así todos van sincronizados) |
 | `qPorJugador`, `segundos` | Configuración de la partida |
 
-Las preguntas siguen en `js/data.js`. Moverlas a Firestore es el siguiente paso natural cuando quieras editarlas sin tocar código.
+El banco actual tiene **300 preguntas** (50 por categoría) y **40 retos**, todo en `js/data.js`. Moverlas a Firestore es el siguiente paso natural cuando quieras editarlas sin tocar código.
