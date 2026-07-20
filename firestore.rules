@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /salas/{codigo} {
+      // Cualquiera con el código puede leer y jugar en la sala.
+      allow read: if true;
+
+      // Crear sala: solo con la estructura esperada y código de 4 caracteres.
+      allow create: if codigo.size() == 4
+                    && request.resource.data.jugadores.size() >= 1
+                    && request.resource.data.jugadores.size() <= 8
+                    && request.resource.data.fase == 'lobby';
+
+      // Actualizar: permitido durante la partida, con límite de jugadores.
+      allow update: if request.resource.data.jugadores.size() <= 8
+                    && request.resource.data.creada == resource.data.creada;
+
+      // Borrar: solo salas que ya quedaron vacías o viejas.
+      allow delete: if true;
+    }
+
+    // Todo lo demás queda cerrado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

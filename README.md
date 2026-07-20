@@ -63,3 +63,44 @@ npx serve .
 - **v1 (esta):** pasa y juega en un solo dispositivo. Validación con usuarios reales.
 - **v2:** más preguntas por categoría, niveles de dificultad, sonidos, guardar historial de partidas en el dispositivo.
 - **v3:** salas multijugador en tiempo real (cada quien desde su celular) — requiere backend (por ejemplo Supabase o Firebase) y es el paso previo a monetizar.
+
+
+## Modo multijugador en línea (Firebase)
+
+La app tiene dos modos: **Jugar aquí** (pasa y juega en un dispositivo, funciona sin internet) y **Jugar en línea** (cada jugador desde su celular, con código de sala de 4 letras).
+
+El backend es **Firestore** y la configuración vive en `js/firebase.js`.
+
+### Activar Firestore (una sola vez)
+
+1. Entra a la [consola de Firebase](https://console.firebase.google.com) → proyecto `trivia-mundial-3b4ee`.
+2. Menú **Build → Firestore Database → Create database**.
+3. Elige **Start in production mode** y la región más cercana (por ejemplo `us-west1` o `southamerica-east1`).
+4. Ve a la pestaña **Rules**, borra lo que haya y pega el contenido del archivo `firestore.rules` de este repo → **Publish**.
+
+Sin ese último paso el modo en línea mostrará un error de permisos.
+
+### Cómo se juega en línea
+
+1. Un jugador toca **Jugar en línea → Crear sala** y recibe un código (ej. `QZ4P`).
+2. Lo comparte por WhatsApp con el botón **Compartir** (manda el enlace y el código juntos).
+3. Los demás abren la web, tocan **Jugar en línea**, escriben su nombre y el código.
+4. El anfitrión ajusta preguntas y segundos, y toca **¡Comenzar partida!**.
+5. Todos ven en vivo el turno, el reloj y el marcador. Los retos se cumplen por videollamada y el grupo vota desde sus celulares.
+
+Máximo 8 jugadores por sala. El anfitrión tiene un botón **Saltar turno** por si alguien pierde conexión.
+
+### Modelo de datos
+
+Colección `salas`, un documento por partida (el ID es el código):
+
+| Campo | Descripción |
+|---|---|
+| `fase` | `lobby`, `mazo`, `pregunta`, `resultado`, `reto`, `fin` |
+| `jugadores` | Lista con `id`, `nombre`, `pts`, `fifty` |
+| `orden`, `mano`, `carta` | Preguntas barajadas, las 4 en mesa, la elegida |
+| `turno`, `hechas` | Índice del jugador en turno y preguntas jugadas |
+| `deadline` | Marca de tiempo en que vence el reloj (así todos van sincronizados) |
+| `qPorJugador`, `segundos` | Configuración de la partida |
+
+Las preguntas siguen en `js/data.js`. Moverlas a Firestore es el siguiente paso natural cuando quieras editarlas sin tocar código.

@@ -78,8 +78,11 @@ render.home = () => {
     ${floatingBg()}
     <div class="z-10 mt-8 mb-8"><img alt="Logo de Trivia Mundial" src="${LOGO_IMG}" class="w-56 h-56 object-contain drop-shadow-xl"/></div>
     <div class="z-10 w-full flex flex-col gap-4">
-      <button onclick="go('setup')" class="w-full bg-primary-container text-white py-5 rounded-2xl font-display font-extrabold text-3xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined msf">play_arrow</span><span>Jugar</span></button>
+      <button onclick="go('setup')" class="w-full bg-primary-container text-white py-5 rounded-2xl font-display font-extrabold text-2xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined msf">groups</span><span>Jugar aquí</span></button>
+      <button onclick="go('online')" class="w-full bg-cat-cultura text-white py-5 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-2" style="box-shadow:0 6px 0 0 #0d6b6b;">
+        <span class="material-symbols-outlined msf">travel_explore</span><span>Jugar en línea</span></button>
+      <p class="text-center text-on-surface-variant text-sm -mt-1">Aquí = un solo celular · En línea = cada quien con el suyo</p>
       <div class="grid grid-cols-3 gap-3">
         <button onclick="go('cats')" class="bg-cat-ciencia text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">category</span><span class="text-sm">Categorías</span></button>
         <button onclick="go('board')" class="bg-cat-entret text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">military_tech</span><span class="text-sm">Marcador</span></button>
@@ -337,5 +340,7 @@ function finishGame(){
     </div>
   </main>${bottomNav("board")}`;
 }
+
+render.online = () => { if(window.renderOnlineMenu) renderOnlineMenu(); else app.innerHTML = '<p class=\"p-8 text-center\">Cargando modo en línea…</p>'; };
 
 render.home();
