@@ -1,0 +1,8 @@
+{
+  "name": "trivia-mundial",
+  "version": "1.0.0",
+  "description": "Juego de trivia con tarjetas 3D y retos para jugar en grupo",
+  "scripts": {
+    "dev": "npx serve ."
+  }
+}

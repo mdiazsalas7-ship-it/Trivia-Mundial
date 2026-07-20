@@ -1,0 +1,18 @@
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+.msf{font-variation-settings:'FILL' 1;}
+.block-shadow-primary{box-shadow:0 6px 0 0 #21005e;}
+.block-shadow-md{box-shadow:0 6px 0 0 rgba(0,0,0,0.18);}
+.block-shadow-sm{box-shadow:0 4px 0 0 rgba(202,196,212,1);}
+.active-btn-press:active{transform:translateY(4px);box-shadow:0 0 0 0 transparent;}
+.floating-card{animation:float 6s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(var(--rot));}50%{transform:translateY(-14px) rotate(calc(var(--rot) + 5deg));}}
+.card-perspective{perspective:1200px;}
+.card-inner3d{transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,.2,.2,1);position:relative;}
+.card-flipped{transform:rotateY(180deg);}
+.card-face{backface-visibility:hidden;}
+.card-back{transform:rotateY(180deg);position:absolute;inset:0;}
+@keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
+.animate-pop{animation:pop .45s ease-out both;}
+@keyframes confetti{0%{transform:translateY(-10px) rotate(0);opacity:1;}100%{transform:translateY(90px) rotate(240deg);opacity:0;}}
+.confetti{animation:confetti 1.6s ease-in infinite;}
+@media (prefers-reduced-motion: reduce){.floating-card,.confetti,.animate-pop{animation:none;}}
