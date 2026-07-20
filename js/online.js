@@ -127,7 +127,10 @@ function paint(){
   if(!r) return;
   if(r.fase === "lobby") return paintLobby();
   if(r.fase === "mazo") return paintDeck();
-  if(r.fase === "pregunta") return paintQuestion();
+  if(r.fase === "pregunta"){
+    if(O.lastCarta !== r.carta){ O.lastCarta = r.carta; return throwOnline(); }
+    return paintQuestion();
+  }
   if(r.fase === "resultado") return paintResult();
   if(r.fase === "reto") return paintReto();
   if(r.fase === "fin") return paintEnd();
@@ -195,6 +198,7 @@ window.startOnline = async function(){
 
 /* ---------- MAZO ---------- */
 function paintDeck(){
+  O.lastCarta = null; O.lastFx = null;
   const r = O.room;
   const mine = isMyTurn();
   const ronda = Math.floor(r.hechas / r.jugadores.length) + 1;
@@ -226,6 +230,26 @@ window.pickOnline = async function(qi){
 };
 
 /* ---------- PREGUNTA ---------- */
+function throwOnline(){
+  const r = O.room, q = QS[r.carta], c = CATS[q.c];
+  FX.whoosh(); vibrate(20);
+  app.innerHTML = `${topBar({exit:false})}
+  <main class="flex-1 px-5 max-w-lg mx-auto w-full">
+    <div class="stage card-perspective">
+      <div id="oFlyer" class="throwing w-56 aspect-[3/4] relative">${cardFace(q.c)}</div>
+    </div>
+    <p id="oFlyTxt" class="text-center font-display font-bold text-xl text-on-surface-variant">${turnName()} lanza la carta…</p>
+  </main>`;
+  setTimeout(()=>FX.drum(), 900);
+  setTimeout(()=>{
+    FX.land(); vibrate(40); shakeScreen();
+    const t = document.getElementById("oFlyTxt");
+    if(t){ t.textContent = q.c.toUpperCase(); t.style.color = c.color; t.classList.add("animate-pop"); }
+    const f = document.getElementById("oFlyer"); if(f) f.classList.add("glow");
+  }, 1880);
+  setTimeout(()=>{ if(O.room && O.room.fase === "pregunta") paintQuestion(); }, 2500);
+}
+
 function paintQuestion(){
   const r = O.room, q = QS[r.carta], c = CATS[q.c], mine = isMyTurn();
   const left = Math.max(0, Math.ceil((r.deadline - now())/1000));
@@ -320,6 +344,7 @@ async function timeUp(){
 /* ---------- RESULTADO Y RETO ---------- */
 function paintResult(){
   const r = O.room, u = r.ultimo || {}, mine = isMyTurn();
+  if(O.lastFx !== "ok"){ O.lastFx = "ok"; FX.good(0); burstConfetti(45); flashPoints("+"+u.pts, "#1E7A5F"); vibrate([30,50,30]); }
   app.innerHTML = `${topBar({exit:false})}
   <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full">
     ${scoreStrip()}
@@ -335,6 +360,7 @@ function paintResult(){
 
 function paintReto(){
   const r = O.room, u = r.ultimo || {}, mine = isMyTurn();
+  if(O.lastFx !== "bad"){ O.lastFx = "bad"; FX.bad(); shakeScreen(); vibrate([80,60,80]); setTimeout(()=>FX.drum(), 300); }
   app.innerHTML = `${topBar({exit:false})}
   <main class="flex-1 px-5 py-5 max-w-lg mx-auto w-full flex flex-col items-center">
     ${scoreStrip()}
@@ -394,6 +420,7 @@ window.nextOnline = async function(){
 /* ---------- FIN ---------- */
 function paintEnd(){
   const r = O.room;
+  if(O.lastFx !== "fin"){ O.lastFx = "fin"; FX.fanfare(); burstConfetti(90, true); setTimeout(()=>burstConfetti(60,true),700); vibrate([60,40,60,40,120]); }
   const s = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   const tie = s.length>1 && s[0].pts===s[1].pts;
   const medals = ["#DD9414","#9ca3af","#b45309"];

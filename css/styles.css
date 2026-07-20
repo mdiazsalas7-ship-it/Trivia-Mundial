@@ -4,15 +4,57 @@
 .block-shadow-md{box-shadow:0 6px 0 0 rgba(0,0,0,0.18);}
 .block-shadow-sm{box-shadow:0 4px 0 0 rgba(202,196,212,1);}
 .active-btn-press:active{transform:translateY(4px);box-shadow:0 0 0 0 transparent;}
+
 .floating-card{animation:float 6s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0) rotate(var(--rot));}50%{transform:translateY(-14px) rotate(calc(var(--rot) + 5deg));}}
-.card-perspective{perspective:1200px;}
+
+.card-perspective{perspective:1400px;}
 .card-inner3d{transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,.2,.2,1);position:relative;}
 .card-flipped{transform:rotateY(180deg);}
 .card-face{backface-visibility:hidden;}
 .card-back{transform:rotateY(180deg);position:absolute;inset:0;}
+
 @keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
 .animate-pop{animation:pop .45s ease-out both;}
-@keyframes confetti{0%{transform:translateY(-10px) rotate(0);opacity:1;}100%{transform:translateY(90px) rotate(240deg);opacity:0;}}
-.confetti{animation:confetti 1.6s ease-in infinite;}
-@media (prefers-reduced-motion: reduce){.floating-card,.confetti,.animate-pop{animation:none;}}
+
+@keyframes dealIn{0%{transform:translateY(60px) rotate(var(--tilt,0deg)) scale(.7);opacity:0;}60%{transform:translateY(-8px) rotate(var(--tilt,0deg)) scale(1.04);opacity:1;}100%{transform:translateY(0) rotate(var(--tilt,0deg)) scale(1);opacity:1;}}
+.deal-in{animation:dealIn .5s cubic-bezier(.34,1.4,.5,1) both;}
+
+@keyframes lanzar{
+  0%{transform:translateY(0) rotateY(0deg) rotateX(0deg) scale(1);}
+  18%{transform:translateY(-30vh) rotateY(300deg) rotateX(120deg) scale(.72);}
+  38%{transform:translateY(-42vh) rotateY(680deg) rotateX(300deg) scale(.6);}
+  58%{transform:translateY(-30vh) rotateY(1040deg) rotateX(480deg) scale(.72);}
+  82%{transform:translateY(4vh) rotateY(1380deg) rotateX(700deg) scale(1.06);}
+  90%{transform:translateY(-3vh) rotateY(1420deg) rotateX(720deg) scale(1);}
+  100%{transform:translateY(0) rotateY(1440deg) rotateX(720deg) scale(1);}
+}
+.throwing{animation:lanzar 1.9s cubic-bezier(.33,.05,.3,1) both;}
+
+@keyframes fadeAway{to{opacity:0;transform:scale(.85) translateY(20px);}}
+.fade-away{animation:fadeAway .35s ease-in both;}
+
+@keyframes shakeK{0%,100%{transform:translateX(0);}15%{transform:translateX(-11px) rotate(-1deg);}30%{transform:translateX(10px) rotate(1deg);}45%{transform:translateX(-8px);}60%{transform:translateX(7px);}80%{transform:translateX(-4px);}}
+.shake{animation:shakeK .55s ease-in-out;}
+
+.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
+.confetti-layer i{position:absolute;top:-24px;display:block;animation:fall linear forwards;}
+@keyframes fall{0%{transform:translateY(0) rotate(0);opacity:1;}100%{transform:translateY(105vh) rotate(760deg);opacity:.9;}}
+
+.points-pop{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);font-family:'Plus Jakarta Sans';font-weight:800;font-size:68px;z-index:9998;pointer-events:none;text-shadow:0 4px 0 rgba(0,0,0,.15);animation:ptsUp 1.3s cubic-bezier(.2,1.3,.4,1) forwards;}
+@keyframes ptsUp{0%{opacity:0;transform:translate(-50%,-30%) scale(.4);}25%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}45%{transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-130%) scale(.95);}}
+
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,63,168,0);}50%{box-shadow:0 0 34px 8px rgba(91,63,168,.45);}}
+.glow{animation:glowPulse 1.2s ease-in-out infinite;}
+
+@keyframes streakIn{0%{transform:scale(0) rotate(-18deg);opacity:0;}60%{transform:scale(1.25) rotate(4deg);opacity:1;}100%{transform:scale(1) rotate(-3deg);opacity:1;}}
+.streak-badge{animation:streakIn .5s cubic-bezier(.3,1.5,.5,1) both;}
+
+@keyframes urgent{0%,100%{transform:scale(1);}50%{transform:scale(1.14);}}
+.urgent{animation:urgent .5s ease-in-out infinite;}
+
+.stage{min-height:64vh;display:flex;align-items:center;justify-content:center;}
+
+@media (prefers-reduced-motion: reduce){
+  .floating-card,.confetti-layer i,.animate-pop,.throwing,.deal-in,.shake,.points-pop,.glow,.streak-badge,.urgent{animation:none!important;}
+}
