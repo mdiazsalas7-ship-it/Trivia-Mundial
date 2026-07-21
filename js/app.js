@@ -44,11 +44,20 @@ function bottomNav(active){
 }
 
 function floatingBg(){
+  const flota = [
+    { cat:"Deportes",        top:"6%",  left:"4%",  w:88,  rot:-13, delay:0,  op:0.16 },
+    { cat:"Historia",        top:"22%", right:"5%", w:76,  rot:14,  delay:-2, op:0.14 },
+    { cat:"Sorpresa",        bottom:"20%", left:"7%", w:96, rot:6,   delay:-4, op:0.18 },
+    { cat:"Cultura",         top:"60%", right:"6%", w:82,  rot:-19, delay:-1, op:0.13 },
+    { cat:"Ciencia",         bottom:"6%", right:"22%", w:64, rot:9,  delay:-3, op:0.10 },
+    { cat:"Entretenimiento", top:"40%", left:"14%", w:58,  rot:-6,  delay:-5, op:0.10 }
+  ];
   return `<div class="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-    <div class="floating-card absolute top-10 left-[5%] w-20 h-24 bg-primary-fixed rounded-xl border-2 border-primary-fixed-dim opacity-25" style="--rot:-12deg;"></div>
-    <div class="floating-card absolute top-1/4 right-[8%] w-16 h-20 rounded-xl border-2 opacity-25" style="--rot:15deg;background:#c9f0ec;border-color:#17A2A2;animation-delay:-2s;"></div>
-    <div class="floating-card absolute bottom-1/4 left-[12%] w-24 h-28 rounded-xl border-2 opacity-25" style="--rot:5deg;background:#fbd8e5;border-color:#D6336C;animation-delay:-4s;"></div>
-    <div class="floating-card absolute top-2/3 right-[5%] w-20 h-24 rounded-xl border-2 opacity-25" style="--rot:-20deg;background:#fce4d6;border-color:#D9531E;animation-delay:-1s;"></div>
+    ${flota.map(f=>{
+      const img = CATS[f.cat].img;
+      const pos = [f.top?`top:${f.top};`:"", f.bottom?`bottom:${f.bottom};`:"", f.left?`left:${f.left};`:"", f.right?`right:${f.right};`:""].join("");
+      return `<div class="floating-card absolute rounded-xl overflow-hidden" style="${pos}width:${f.w}px;aspect-ratio:3/4;--rot:${f.rot}deg;animation-delay:${f.delay}s;opacity:${f.op};background-image:url('${img}');background-size:cover;background-position:center;filter:saturate(0.85);box-shadow:0 8px 30px rgba(0,0,0,.5);"></div>`;
+    }).join("")}
   </div>`;
 }
 
@@ -111,7 +120,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.4";
+const APP_VER = "2.5";
 const render = {};
 
 render.home = () => {
