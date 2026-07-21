@@ -67,3 +67,9 @@ input::placeholder{color:#6F6A92!important;}
 .block-shadow-md{box-shadow:0 6px 0 0 rgba(0,0,0,0.6);}
 .card-face{box-shadow:0 8px 24px rgba(0,0,0,.6);}
 @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,182,255,0);}50%{box-shadow:0 0 40px 10px rgba(198,182,255,.35);}}
+
+/* mapa mundi */
+#mapaWrap{-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+#mapaWrap::-webkit-scrollbar{height:6px;}
+#mapaWrap::-webkit-scrollbar-thumb{background:#2B3160;border-radius:3px;}
+#mapaSvg{max-width:none;}

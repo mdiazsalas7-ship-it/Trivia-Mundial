@@ -111,7 +111,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.2";
+const APP_VER = "2.3";
 const render = {};
 
 render.home = () => {
@@ -220,26 +220,26 @@ render.settings = () => {
 };
 
 const ETAPAS = [
-  { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2" },
-  { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414" },
-  { n:"Madrid",          pais:"España",         seg:22, num:7,  icon:"stadium",         color:"#D9531E" },
-  { n:"Lisboa",          pais:"Portugal",       seg:22, num:7,  icon:"sailing",         color:"#1E7A5F" },
-  { n:"Londres",         pais:"Reino Unido",    seg:21, num:8,  icon:"schedule",        color:"#5B3FA8" },
-  { n:"Ámsterdam",       pais:"Países Bajos",   seg:21, num:8,  icon:"pedal_bike",      color:"#D6336C" },
-  { n:"Berlín",          pais:"Alemania",       seg:20, num:9,  icon:"apartment",       color:"#17A2A2" },
-  { n:"Atenas",          pais:"Grecia",         seg:20, num:9,  icon:"temple_hindu",    color:"#DD9414" },
-  { n:"Estambul",        pais:"Turquía",        seg:19, num:10, icon:"mosque",          color:"#D9531E" },
-  { n:"El Cairo",        pais:"Egipto",         seg:19, num:10, icon:"landscape",       color:"#1E7A5F" },
-  { n:"Nairobi",         pais:"Kenia",          seg:18, num:11, icon:"pets",            color:"#5B3FA8" },
-  { n:"Ciudad del Cabo", pais:"Sudáfrica",      seg:18, num:11, icon:"terrain",         color:"#D6336C" },
-  { n:"Nueva Delhi",     pais:"India",          seg:17, num:12, icon:"temple_buddhist", color:"#17A2A2" },
-  { n:"Pekín",           pais:"China",          seg:17, num:12, icon:"fort",            color:"#DD9414" },
-  { n:"Tokio",           pais:"Japón",          seg:16, num:13, icon:"biotech",         color:"#D9531E" },
-  { n:"Sídney",          pais:"Australia",      seg:16, num:13, icon:"waves",           color:"#1E7A5F" },
-  { n:"Ciudad de México",pais:"México",         seg:15, num:14, icon:"celebration",     color:"#5B3FA8" },
-  { n:"Río de Janeiro",  pais:"Brasil",         seg:15, num:14, icon:"festival",        color:"#D6336C" },
-  { n:"Buenos Aires",    pais:"Argentina",      seg:14, num:15, icon:"music_note",      color:"#17A2A2" },
-  { n:"Everest",         pais:"Nepal",          seg:12, num:16, icon:"summarize",       color:"#DD9414" }
+  { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2", x:592, y:150 },
+  { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414", x:628, y:180 },
+  { n:"Madrid",          pais:"España",         seg:22, num:7,  icon:"stadium",         color:"#D9531E", x:556, y:182 },
+  { n:"Lisboa",          pais:"Portugal",       seg:22, num:7,  icon:"sailing",         color:"#1E7A5F", x:534, y:188 },
+  { n:"Londres",         pais:"Reino Unido",    seg:21, num:8,  icon:"schedule",        color:"#5B3FA8", x:578, y:118 },
+  { n:"Ámsterdam",       pais:"Países Bajos",   seg:21, num:8,  icon:"pedal_bike",      color:"#D6336C", x:614, y:108 },
+  { n:"Berlín",          pais:"Alemania",       seg:20, num:9,  icon:"apartment",       color:"#17A2A2", x:650, y:120 },
+  { n:"Atenas",          pais:"Grecia",         seg:20, num:9,  icon:"temple_hindu",    color:"#DD9414", x:674, y:192 },
+  { n:"Estambul",        pais:"Turquía",        seg:19, num:10, icon:"mosque",          color:"#D9531E", x:702, y:166 },
+  { n:"El Cairo",        pais:"Egipto",         seg:19, num:10, icon:"landscape",       color:"#1E7A5F", x:702, y:228 },
+  { n:"Nairobi",         pais:"Kenia",          seg:18, num:11, icon:"pets",            color:"#5B3FA8", x:732, y:316 },
+  { n:"Ciudad del Cabo", pais:"Sudáfrica",      seg:18, num:11, icon:"terrain",         color:"#D6336C", x:668, y:398 },
+  { n:"Nueva Delhi",     pais:"India",          seg:17, num:12, icon:"temple_buddhist", color:"#17A2A2", x:856, y:236 },
+  { n:"Pekín",           pais:"China",          seg:17, num:12, icon:"fort",            color:"#DD9414", x:962, y:176 },
+  { n:"Tokio",           pais:"Japón",          seg:16, num:13, icon:"biotech",         color:"#D9531E", x:1052, y:192 },
+  { n:"Sídney",          pais:"Australia",      seg:16, num:13, icon:"waves",           color:"#1E7A5F", x:1092, y:378 },
+  { n:"Ciudad de México",pais:"México",         seg:15, num:14, icon:"celebration",     color:"#5B3FA8", x:286, y:256 },
+  { n:"Río de Janeiro",  pais:"Brasil",         seg:15, num:14, icon:"festival",        color:"#D6336C", x:446, y:362 },
+  { n:"Buenos Aires",    pais:"Argentina",      seg:14, num:15, icon:"music_note",      color:"#17A2A2", x:402, y:408 },
+  { n:"Everest",         pais:"Nepal",          seg:12, num:16, icon:"summarize",       color:"#DD9414", x:882, y:214 }
 ];
 
 /* Bolsa de categorías: no se repite ninguna hasta que salgan todas */
@@ -255,49 +255,157 @@ function progresoMundo(){
 }
 function guardarMundo(p){ localStorage.setItem("tm_mundo", JSON.stringify(p)); }
 
+/* ---------- MAPA MUNDI ---------- */
+const CONTINENTES = [
+  [[-168,65],[-140,70],[-125,60],[-123,49],[-117,32],[-105,22],[-97,16],[-83,9],[-78,20],[-80,26],[-75,35],[-70,45],[-60,47],[-55,52],[-65,60],[-80,70],[-95,72],[-125,72],[-155,71]],
+  [[-45,60],[-20,70],[-25,83],[-60,83],[-55,70]],
+  [[-81,0],[-79,-5],[-71,-18],[-70,-30],[-73,-45],[-75,-52],[-68,-55],[-64,-42],[-58,-35],[-48,-25],[-40,-20],[-35,-8],[-50,0],[-60,5],[-77,8]],
+  [[-17,15],[-17,28],[-10,35],[10,37],[25,32],[32,31],[43,12],[51,12],[41,-1],[40,-15],[35,-25],[20,-35],[15,-25],[12,-5],[9,4],[-8,4],[-13,10]],
+  [[-10,36],[-9,44],[-2,49],[2,51],[5,58],[10,58],[20,55],[28,60],[30,70],[60,70],[90,75],[140,72],[160,68],[145,55],[135,45],[122,30],[110,20],[100,10],[95,20],[88,22],[80,10],[72,20],[60,25],[50,30],[35,36],[28,40],[20,40],[12,45],[3,42]],
+  [[113,-22],[129,-12],[142,-11],[146,-19],[153,-27],[150,-37],[140,-38],[129,-32],[115,-34],[113,-26]],
+  [[130,33],[140,36],[142,43],[139,35],[133,34]]
+];
+const proj = (lon,lat) => [ (lon+180)/360*1200, (90-lat)/180*600 ];
+
+function mapaSVG(p, destacada = -1){
+  const tierra = CONTINENTES.map(c =>
+    `<polygon points="${c.map(([lo,la])=>proj(lo,la).join(',')).join(' ')}" fill="#111740" stroke="#2B3160" stroke-width="1.5"/>`
+  ).join("");
+
+  const ruta = ETAPAS.map((e,i)=>{
+    if(i === 0) return "";
+    const a0 = ETAPAS[i-1];
+    const abierta = i <= p.max;
+    const mx = (a0.x+e.x)/2, my = (a0.y+e.y)/2 - Math.abs(e.x-a0.x)*0.12 - 12;
+    return `<path d="M ${a0.x} ${a0.y} Q ${mx} ${my} ${e.x} ${e.y}" fill="none" stroke="${abierta?"#5B3FA8":"#232a54"}" stroke-width="2.5" stroke-dasharray="7 7" opacity="${abierta?0.9:0.5}"/>`;
+  }).join("");
+
+  const marcas = ETAPAS.map((e,i)=>{
+    const abierta = i <= p.max;
+    const est = p.estrellas[i] || 0;
+    const actual = i === Math.min(p.max, ETAPAS.length-1);
+    return `<g transform="translate(${e.x},${e.y})" style="cursor:${abierta?"pointer":"default"}" onclick="${abierta?`verEtapa(${i})`:""}" role="button" aria-label="Etapa ${i+1}: ${e.n}">
+      ${actual?`<circle r="26" fill="${e.color}" opacity="0.25"><animate attributeName="r" values="20;30;20" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.35;0.05;0.35" dur="2s" repeatCount="indefinite"/></circle>`:""}
+      <circle r="15" fill="${abierta?e.color:"#232a54"}" stroke="${destacada===i?"#fff":(abierta?"#05081C":"#2B3160")}" stroke-width="${destacada===i?3:2.5}"/>
+      <text y="5" text-anchor="middle" font-size="14" font-weight="800" fill="${abierta?"#fff":"#6F6A92"}" font-family="Plus Jakarta Sans">${abierta?(i+1):"🔒"}</text>
+      ${est>0?`<g transform="translate(0,-24)">${[0,1,2].map(s=>`<circle cx="${(s-1)*8}" cy="0" r="3" fill="${s<est?"#DD9414":"#2B3160"}"/>`).join("")}</g>`:""}
+      ${abierta?`<text y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#ECEAF7" font-family="Be Vietnam Pro" style="paint-order:stroke;stroke:#05081C;stroke-width:4;">${e.n}</text>`:""}
+    </g>`;
+  }).join("");
+
+  return `<svg id="mapaSvg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-label="Mapa del viaje">
+    <defs><radialGradient id="mar" cx="50%" cy="45%"><stop offset="0%" stop-color="#0B1030"/><stop offset="100%" stop-color="#05081C"/></radialGradient></defs>
+    <rect width="1200" height="600" fill="url(#mar)"/>
+    ${tierra}${ruta}${marcas}
+    <g id="avionCapa"></g>
+  </svg>`;
+}
+
 render.solo = () => {
   const p = progresoMundo();
   const totalEstrellas = Object.values(p.estrellas).reduce((a,b)=>a+b,0);
+  const actual = Math.min(p.max, ETAPAS.length-1);
   app.innerHTML = `${topBar({back:"go('home')"})}
-  <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
-    <div class="text-center mb-5">
-      <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">explore</span>
+  <main class="flex-1 pb-32 max-w-3xl mx-auto w-full">
+    <div class="px-5 pt-5 text-center">
       <h2 class="font-display font-bold text-2xl">Vuelta al Mundo</h2>
-      <p class="text-on-surface-variant">20 destinos, tres vidas por etapa. ¿Llegarás al Everest?</p>
-      <div class="inline-flex items-center gap-1 mt-3 bg-surface-container border-2 border-outline-variant rounded-full px-4 py-1.5">
-        <span class="material-symbols-outlined msf text-cat-historia" style="font-size:18px;">star</span>
-        <span class="font-display font-extrabold">${totalEstrellas}</span>
-        <span class="text-on-surface-variant text-sm">/ ${ETAPAS.length*3}</span>
+      <p class="text-on-surface-variant text-sm">Toca un destino para volar hacia él</p>
+      <div class="flex items-center justify-center gap-3 mt-3">
+        <span class="inline-flex items-center gap-1 bg-surface-container border-2 border-outline-variant rounded-full px-3 py-1">
+          <span class="material-symbols-outlined msf text-cat-historia" style="font-size:16px;">star</span>
+          <span class="font-display font-extrabold text-sm">${totalEstrellas}</span>
+          <span class="text-on-surface-variant text-xs">/ ${ETAPAS.length*3}</span></span>
+        <span class="inline-flex items-center gap-1 bg-surface-container border-2 border-outline-variant rounded-full px-3 py-1">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">flag</span>
+          <span class="font-display font-extrabold text-sm">${actual+1}</span>
+          <span class="text-on-surface-variant text-xs">/ ${ETAPAS.length}</span></span>
       </div>
     </div>
-    <div class="grid gap-3">
-      ${ETAPAS.map((e,i)=>{
-        const abierta = i <= p.max;
-        const est = p.estrellas[i] || 0;
-        const c = { color: e.color };
-        return `<button ${abierta?`onclick="empezarEtapa(${i})"`:"disabled"} class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 transition-all ${abierta?"border-outline-variant bg-surface-container active:translate-y-1 block-shadow-sm":"border-outline-variant/40 opacity-45"}">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 relative" style="background:${abierta?c.color:"#2B3160"}">
-            <span class="material-symbols-outlined text-white msf" style="font-size:24px;">${abierta?e.icon:"lock"}</span>
-            <span class="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-surface-container border-2 border-outline-variant text-[11px] font-extrabold flex items-center justify-center">${i+1}</span></div>
-          <div class="flex-1 min-w-0">
-            <p class="font-display font-extrabold text-base leading-tight">${e.n}</p>
-            <p class="text-on-surface-variant text-sm">${e.pais} · ${e.num} preguntas · ${e.seg}s por pregunta</p>
-            ${abierta ? `<div class="flex items-center gap-0.5 mt-1">
-              ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"}" style="font-size:17px;">star</span>`).join("")}
-              ${p.mejor[i]?`<span class="text-on-surface-variant text-xs ml-2">récord ${p.mejor[i]} pts</span>`:""}
-            </div>` : `<p class="text-on-surface-variant text-xs mt-1">Supera la etapa anterior para desbloquear</p>`}
-          </div>
-          ${abierta?'<span class="material-symbols-outlined text-primary">chevron_right</span>':""}
-        </button>`;
-      }).join("")}
+    <div id="mapaWrap" class="mt-3 overflow-x-auto overflow-y-hidden">
+      <div class="min-w-[1200px]">${mapaSVG(p)}</div>
     </div>
+    <div id="fichaEtapa" class="px-5"></div>
   </main>${bottomNav("home")}`;
-  setTimeout(()=>{
-    const btns = document.querySelectorAll('main .grid.gap-2\.5 > button');
-    const actual = btns[Math.min(p.max, ETAPAS.length-1)];
-    if(actual && p.max > 2) actual.scrollIntoView({ block:'center', behavior:'smooth' });
-  }, 120);
+  setTimeout(()=>centrarMapa(ETAPAS[actual]), 100);
+  setTimeout(()=>verEtapa(actual), 350);
 };
+
+function centrarMapa(e){
+  const wrap = document.getElementById("mapaWrap");
+  if(!wrap) return;
+  const escala = 1200 / wrap.scrollWidth ? wrap.scrollWidth / 1200 : 1;
+  wrap.scrollTo({ left: Math.max(0, e.x * escala - wrap.clientWidth/2), behavior:"smooth" });
+}
+
+function verEtapa(i){
+  const e = ETAPAS[i], p = progresoMundo();
+  const est = p.estrellas[i] || 0;
+  const ficha = document.getElementById("fichaEtapa");
+  if(!ficha) return;
+  ficha.innerHTML = `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 mt-4 block-shadow-sm animate-pop">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${e.color}">
+        <span class="material-symbols-outlined text-white msf">${e.icon}</span></div>
+      <div class="flex-1 min-w-0">
+        <p class="font-display font-extrabold text-lg leading-tight">${i+1}. ${e.n}</p>
+        <p class="text-on-surface-variant text-sm">${e.pais} · ${e.num} preguntas · ${e.seg}s cada una</p>
+      </div>
+      <div class="flex gap-0.5 flex-shrink-0">
+        ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"}" style="font-size:18px;">star</span>`).join("")}
+      </div>
+    </div>
+    ${p.mejor[i]?`<p class="text-on-surface-variant text-sm mt-2">Tu récord aquí: <span class="font-bold text-primary">${p.mejor[i]} pts</span></p>`:""}
+    <button onclick="volarA(${i})" class="mt-4 w-full bg-primary-container text-white py-3.5 rounded-xl font-display font-extrabold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">flight_takeoff</span> Volar a ${e.n}</button>
+  </div>`;
+  const p2 = progresoMundo();
+  const wrap = document.getElementById("mapaWrap");
+  if(wrap){ const svg = document.getElementById("mapaSvg"); if(svg) svg.outerHTML = mapaSVG(p2, i); }
+  centrarMapa(e);
+}
+
+function volarA(destino){
+  const p = progresoMundo();
+  const origen = (S.etapa !== undefined && S.etapa !== destino) ? S.etapa : Math.max(0, destino - 1);
+  const desde = ETAPAS[Math.max(0, Math.min(origen, ETAPAS.length-1))];
+  return despegar(desde, ETAPAS[destino], destino);
+}
+
+function despegar(a0, e, destino){
+  FX.whoosh(); vibrate(30);
+  const mx = (a0.x+e.x)/2, my = (a0.y+e.y)/2 - Math.abs(e.x-a0.x)*0.12 - 30;
+  const d = `M ${a0.x} ${a0.y} Q ${mx} ${my} ${e.x} ${e.y}`;
+  const mismo = a0.x === e.x && a0.y === e.y;
+  const dur = mismo ? 0.8 : 2.6;
+  app.innerHTML = `${topBar()}
+  <main class="flex-1 max-w-3xl mx-auto w-full pb-10">
+    <p class="text-center font-display font-extrabold text-xl pt-5">Rumbo a ${e.n}</p>
+    <p class="text-center text-on-surface-variant text-sm mb-2">${e.pais}</p>
+    <div id="mapaWrap" class="overflow-x-auto overflow-y-hidden">
+      <div class="min-w-[1200px]">
+        ${mapaSVG(progresoMundo(), destino).replace('<g id="avionCapa"></g>', `
+          <path d="${d}" fill="none" stroke="#C6B6FF" stroke-width="3" stroke-dasharray="10 8" opacity="0.9">
+            <animate attributeName="stroke-dashoffset" from="200" to="0" dur="${dur}s" fill="freeze"/>
+          </path>
+          <g>
+            <g transform="translate(-14,-14)">
+              <circle cx="14" cy="14" r="16" fill="#5B3FA8" opacity="0.35"/>
+              <text x="14" y="21" text-anchor="middle" font-size="22">✈️</text>
+            </g>
+            <animateMotion dur="${dur}s" path="${d}" rotate="auto" fill="freeze"/>
+          </g>`)}
+      </div>
+    </div>
+    <p class="text-center text-on-surface-variant mt-4"><span class="material-symbols-outlined align-middle urgent" style="font-size:20px;">flight</span> Preparando el aterrizaje…</p>
+  </main>`;
+  const wrap = document.getElementById("mapaWrap");
+  if(wrap){
+    wrap.scrollTo({ left: Math.max(0, a0.x - wrap.clientWidth/2) });
+    setTimeout(()=>wrap.scrollTo({ left: Math.max(0, e.x - wrap.clientWidth/2), behavior:"smooth" }), 400);
+  }
+  setTimeout(()=>{ FX.land(); vibrate(50); }, dur*1000 - 100);
+  setTimeout(()=>empezarEtapa(destino), dur*1000 + 400);
+}
 
 function empezarEtapa(i){
   const e = ETAPAS[i];
@@ -631,7 +739,7 @@ function etapaFallida(){
       <p class="font-display font-extrabold text-4xl text-primary mt-4">${S.scores[0]} pts</p>
       <p class="text-on-surface-variant text-sm">${S.qDone} de ${S.qPerPlayer} preguntas respondidas</p>
       <div class="grid gap-3 mt-6">
-        <button onclick="empezarEtapa(${S.etapa})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Reintentar</button>
+        <button onclick="empezarEtapa(${S.etapa})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Reintentar etapa</button>
         <button onclick="go('solo')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al mapa</button>
       </div>
     </div>
@@ -660,7 +768,7 @@ function etapaSuperada(){
       <p class="font-display font-extrabold text-4xl text-primary mt-4">${S.scores[0]} pts</p>
       <p class="text-on-surface-variant text-sm">${S.vidas} vida${S.vidas===1?"":"s"} restante${S.vidas===1?"":"s"}</p>
       <div class="grid gap-3 mt-6">
-        ${!ultima?`<button onclick="empezarEtapa(${S.etapa+1})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">flight_takeoff</span> Siguiente destino: ${ETAPAS[S.etapa+1].n}</button>`:""}
+        ${!ultima?`<button onclick="volarA(${S.etapa+1})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">flight_takeoff</span> Volar a ${ETAPAS[S.etapa+1].n}</button>`:""}
         <button onclick="go('solo')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al mapa</button>
       </div>
     </div>
