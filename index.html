@@ -25,7 +25,20 @@ tailwind.config = {
 }
 </script>
 <link rel="stylesheet" href="css/styles.css"/>
-<link rel="icon" type="image/webp" href="assets/logo.webp"/>
+<link rel="icon" href="favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#05081C"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Trivia Mundial"/>
+<meta property="og:title" content="Trivia Mundial"/>
+<meta property="og:description" content="Juego de trivia con tarjetas y retos para jugar en familia."/>
+<meta property="og:image" content="icons/icon-512.png"/>
+<meta property="og:type" content="website"/>
 <meta name="description" content="Trivia Mundial: el juego de preguntas y retos para jugar en grupo."/>
 </head>
 <body class="bg-background text-on-surface font-body min-h-screen overflow-x-hidden">
@@ -34,5 +47,6 @@ tailwind.config = {
 <script src="js/fx.js"></script>
 <script src="js/app.js"></script>
 <script type="module" src="js/online.js"></script>
+<script src="js/install.js"></script>
 </body>
 </html>

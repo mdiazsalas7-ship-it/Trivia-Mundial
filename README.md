@@ -104,3 +104,21 @@ Colección `salas`, un documento por partida (el ID es el código):
 | `qPorJugador`, `segundos` | Configuración de la partida |
 
 El banco actual tiene **300 preguntas** (50 por categoría) y **40 retos**, todo en `js/data.js`. Moverlas a Firestore es el siguiente paso natural cuando quieras editarlas sin tocar código.
+
+
+## App instalable (PWA)
+
+La web es instalable como app en Android, iPhone, Windows y Mac.
+
+- **Android / Chrome:** aparece un banner “Instalar Trivia Mundial” a los pocos segundos, o desde el menú ⋮ → *Instalar aplicación*.
+- **iPhone / Safari:** botón *Compartir* → *Añadir a pantalla de inicio* (el banner muestra la instrucción automáticamente).
+- **Escritorio:** icono de instalar en la barra de direcciones.
+- También hay un botón permanente en **Ajustes → Instalar en este dispositivo**.
+
+Una vez instalada se abre a pantalla completa, sin barra del navegador, y **funciona sin internet** gracias al service worker (`sw.js`). El único modo que necesita conexión es el multijugador en línea.
+
+Archivos implicados: `manifest.webmanifest`, `sw.js`, `js/install.js`, `favicon.ico` y la carpeta `icons/`.
+
+**Importante:** la instalación solo funciona sobre HTTPS (Vercel lo da automáticamente) o en `localhost`. Abriendo el archivo directamente desde el disco no aparecerá el botón.
+
+Al publicar una versión nueva, sube el número de `VERSION` en `sw.js` (por ejemplo `tm-v4`) para que los dispositivos actualicen la caché.

@@ -72,6 +72,12 @@ function cardFace(cat, extra="", ajustar=false){
 function isBot(){ return !!(S.bots && S.bots[S.turn]); }
 function clearBot(){ if(S.botTO){ clearTimeout(S.botTO); S.botTO=null; } }
 
+function pedirInstalacion(){
+  if(typeof instalarApp === "function" && window.deferredPromptReady){ instalarApp(); return; }
+  if(typeof mostrarBannerManual === "function"){ mostrarBannerManual(); return; }
+  alert("Para instalar:\n\n• Android/Chrome: menú ⋮ → “Instalar aplicación”.\n• iPhone/Safari: botón Compartir → “Añadir a pantalla de inicio”.\n• Escritorio: icono de instalar en la barra de direcciones.");
+}
+
 function toggleSound(btn){
   const on = FX.toggle();
   if(btn) btn.querySelector("span").textContent = on ? "volume_up" : "volume_off";
@@ -152,6 +158,12 @@ render.settings = () => {
         ${[15,20,30].map(t=>`<button onclick="S.timerSecs=${t};render.settings()" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${S.timerSecs===t?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${t} s</button>`).join("")}
       </div>
       <p class="text-on-surface-variant text-sm mt-3">Menos tiempo, más adrenalina. El bonus de rapidez se ajusta solo.</p>
+    </div>
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
+      <p class="font-bold mb-1">Instalar en este dispositivo</p>
+      <p class="text-on-surface-variant text-sm mb-3">Se abre a pantalla completa y funciona sin internet (excepto el modo en línea).</p>
+      <button onclick="pedirInstalacion()" class="w-full bg-primary-container text-white py-3.5 rounded-xl font-bold active-btn-press transition-all flex items-center justify-center gap-2" style="box-shadow:0 4px 0 0 #21005e;">
+        <span class="material-symbols-outlined">install_mobile</span> Instalar Trivia Mundial</button>
     </div>
   </main>${bottomNav("settings")}`;
 };
