@@ -111,7 +111,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.1";
+const APP_VER = "2.2";
 const render = {};
 
 render.home = () => {
@@ -185,7 +185,13 @@ render.settings = () => {
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
       <p class="font-bold mb-3">Audio</p>
-      <div class="grid gap-3">
+      <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-4 mb-4 block-shadow-sm">
+      <div class="flex justify-between text-sm font-bold mb-2"><span>Progreso del viaje</span><span class="text-primary">${Math.min(p.max, ETAPAS.length-1)+1} / ${ETAPAS.length}</span></div>
+      <div class="h-3 rounded-full bg-surface-container-lowest overflow-hidden">
+        <div class="h-full rounded-full transition-all" style="width:${Math.round((Math.min(p.max,ETAPAS.length-1)+1)/ETAPAS.length*100)}%;background:linear-gradient(90deg,#17A2A2,#5B3FA8);"></div>
+      </div>
+    </div>
+    <div class="grid gap-2.5">
         <button onclick="switchSonido()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${FX.on?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">
           <span class="flex items-center gap-2"><span class="material-symbols-outlined">${FX.on?"volume_up":"volume_off"}</span> Efectos de sonido</span>
           <span class="text-sm">${FX.on?"Activados":"Silenciados"}</span></button>
@@ -214,12 +220,26 @@ render.settings = () => {
 };
 
 const ETAPAS = [
-  { n:"París",     pais:"Francia",   seg:22, num:6,  icon:"tour",            color:"#17A2A2" },
-  { n:"Roma",      pais:"Italia",    seg:20, num:7,  icon:"account_balance", color:"#DD9414" },
-  { n:"Río",       pais:"Brasil",    seg:18, num:8,  icon:"celebration",     color:"#D6336C" },
-  { n:"Tokio",     pais:"Japón",     seg:16, num:8,  icon:"biotech",         color:"#1E7A5F" },
-  { n:"Nairobi",   pais:"Kenia",     seg:15, num:9,  icon:"sports_score",    color:"#D9531E" },
-  { n:"La Cumbre", pais:"El mundo",  seg:13, num:10, icon:"public",          color:"#5B3FA8" }
+  { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2" },
+  { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414" },
+  { n:"Madrid",          pais:"España",         seg:22, num:7,  icon:"stadium",         color:"#D9531E" },
+  { n:"Lisboa",          pais:"Portugal",       seg:22, num:7,  icon:"sailing",         color:"#1E7A5F" },
+  { n:"Londres",         pais:"Reino Unido",    seg:21, num:8,  icon:"schedule",        color:"#5B3FA8" },
+  { n:"Ámsterdam",       pais:"Países Bajos",   seg:21, num:8,  icon:"pedal_bike",      color:"#D6336C" },
+  { n:"Berlín",          pais:"Alemania",       seg:20, num:9,  icon:"apartment",       color:"#17A2A2" },
+  { n:"Atenas",          pais:"Grecia",         seg:20, num:9,  icon:"temple_hindu",    color:"#DD9414" },
+  { n:"Estambul",        pais:"Turquía",        seg:19, num:10, icon:"mosque",          color:"#D9531E" },
+  { n:"El Cairo",        pais:"Egipto",         seg:19, num:10, icon:"landscape",       color:"#1E7A5F" },
+  { n:"Nairobi",         pais:"Kenia",          seg:18, num:11, icon:"pets",            color:"#5B3FA8" },
+  { n:"Ciudad del Cabo", pais:"Sudáfrica",      seg:18, num:11, icon:"terrain",         color:"#D6336C" },
+  { n:"Nueva Delhi",     pais:"India",          seg:17, num:12, icon:"temple_buddhist", color:"#17A2A2" },
+  { n:"Pekín",           pais:"China",          seg:17, num:12, icon:"fort",            color:"#DD9414" },
+  { n:"Tokio",           pais:"Japón",          seg:16, num:13, icon:"biotech",         color:"#D9531E" },
+  { n:"Sídney",          pais:"Australia",      seg:16, num:13, icon:"waves",           color:"#1E7A5F" },
+  { n:"Ciudad de México",pais:"México",         seg:15, num:14, icon:"celebration",     color:"#5B3FA8" },
+  { n:"Río de Janeiro",  pais:"Brasil",         seg:15, num:14, icon:"festival",        color:"#D6336C" },
+  { n:"Buenos Aires",    pais:"Argentina",      seg:14, num:15, icon:"music_note",      color:"#17A2A2" },
+  { n:"Everest",         pais:"Nepal",          seg:12, num:16, icon:"summarize",       color:"#DD9414" }
 ];
 
 /* Bolsa de categorías: no se repite ninguna hasta que salgan todas */
@@ -243,7 +263,7 @@ render.solo = () => {
     <div class="text-center mb-5">
       <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">explore</span>
       <h2 class="font-display font-bold text-2xl">Vuelta al Mundo</h2>
-      <p class="text-on-surface-variant">Seis destinos, tres vidas por etapa. ¿Llegarás a La Cumbre?</p>
+      <p class="text-on-surface-variant">20 destinos, tres vidas por etapa. ¿Llegarás al Everest?</p>
       <div class="inline-flex items-center gap-1 mt-3 bg-surface-container border-2 border-outline-variant rounded-full px-4 py-1.5">
         <span class="material-symbols-outlined msf text-cat-historia" style="font-size:18px;">star</span>
         <span class="font-display font-extrabold">${totalEstrellas}</span>
@@ -256,10 +276,11 @@ render.solo = () => {
         const est = p.estrellas[i] || 0;
         const c = { color: e.color };
         return `<button ${abierta?`onclick="empezarEtapa(${i})"`:"disabled"} class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 transition-all ${abierta?"border-outline-variant bg-surface-container active:translate-y-1 block-shadow-sm":"border-outline-variant/40 opacity-45"}">
-          <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${abierta?c.color:"#2B3160"}">
-            <span class="material-symbols-outlined text-white msf" style="font-size:26px;">${abierta?e.icon:"lock"}</span></div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 relative" style="background:${abierta?c.color:"#2B3160"}">
+            <span class="material-symbols-outlined text-white msf" style="font-size:24px;">${abierta?e.icon:"lock"}</span>
+            <span class="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-surface-container border-2 border-outline-variant text-[11px] font-extrabold flex items-center justify-center">${i+1}</span></div>
           <div class="flex-1 min-w-0">
-            <p class="font-display font-extrabold text-lg leading-tight">${i+1}. ${e.n}</p>
+            <p class="font-display font-extrabold text-base leading-tight">${e.n}</p>
             <p class="text-on-surface-variant text-sm">${e.pais} · ${e.num} preguntas · ${e.seg}s por pregunta</p>
             ${abierta ? `<div class="flex items-center gap-0.5 mt-1">
               ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"}" style="font-size:17px;">star</span>`).join("")}
@@ -271,6 +292,11 @@ render.solo = () => {
       }).join("")}
     </div>
   </main>${bottomNav("home")}`;
+  setTimeout(()=>{
+    const btns = document.querySelectorAll('main .grid.gap-2\.5 > button');
+    const actual = btns[Math.min(p.max, ETAPAS.length-1)];
+    if(actual && p.max > 2) actual.scrollIntoView({ block:'center', behavior:'smooth' });
+  }, 120);
 };
 
 function empezarEtapa(i){
