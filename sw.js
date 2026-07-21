@@ -1,4 +1,4 @@
-const VERSION = "tm-v12";
+const VERSION = "tm-v13";
 const SHELL = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const SHELL = [
   "./js/app.js",
   "./manifest.webmanifest",
   "./assets/logo.webp",
+  "./assets/mapa.webp",
   "./assets/music/upbeat.mp3",
   "./assets/music/barcelona.mp3",
   "./assets/card-cultura.webp",

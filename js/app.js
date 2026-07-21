@@ -111,7 +111,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.3";
+const APP_VER = "2.4";
 const render = {};
 
 render.home = () => {
@@ -220,26 +220,26 @@ render.settings = () => {
 };
 
 const ETAPAS = [
-  { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2", x:592, y:150 },
-  { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414", x:628, y:180 },
-  { n:"Madrid",          pais:"España",         seg:22, num:7,  icon:"stadium",         color:"#D9531E", x:556, y:182 },
-  { n:"Lisboa",          pais:"Portugal",       seg:22, num:7,  icon:"sailing",         color:"#1E7A5F", x:534, y:188 },
-  { n:"Londres",         pais:"Reino Unido",    seg:21, num:8,  icon:"schedule",        color:"#5B3FA8", x:578, y:118 },
-  { n:"Ámsterdam",       pais:"Países Bajos",   seg:21, num:8,  icon:"pedal_bike",      color:"#D6336C", x:614, y:108 },
-  { n:"Berlín",          pais:"Alemania",       seg:20, num:9,  icon:"apartment",       color:"#17A2A2", x:650, y:120 },
-  { n:"Atenas",          pais:"Grecia",         seg:20, num:9,  icon:"temple_hindu",    color:"#DD9414", x:674, y:192 },
-  { n:"Estambul",        pais:"Turquía",        seg:19, num:10, icon:"mosque",          color:"#D9531E", x:702, y:166 },
-  { n:"El Cairo",        pais:"Egipto",         seg:19, num:10, icon:"landscape",       color:"#1E7A5F", x:702, y:228 },
-  { n:"Nairobi",         pais:"Kenia",          seg:18, num:11, icon:"pets",            color:"#5B3FA8", x:732, y:316 },
-  { n:"Ciudad del Cabo", pais:"Sudáfrica",      seg:18, num:11, icon:"terrain",         color:"#D6336C", x:668, y:398 },
-  { n:"Nueva Delhi",     pais:"India",          seg:17, num:12, icon:"temple_buddhist", color:"#17A2A2", x:856, y:236 },
-  { n:"Pekín",           pais:"China",          seg:17, num:12, icon:"fort",            color:"#DD9414", x:962, y:176 },
-  { n:"Tokio",           pais:"Japón",          seg:16, num:13, icon:"biotech",         color:"#D9531E", x:1052, y:192 },
-  { n:"Sídney",          pais:"Australia",      seg:16, num:13, icon:"waves",           color:"#1E7A5F", x:1092, y:378 },
-  { n:"Ciudad de México",pais:"México",         seg:15, num:14, icon:"celebration",     color:"#5B3FA8", x:286, y:256 },
-  { n:"Río de Janeiro",  pais:"Brasil",         seg:15, num:14, icon:"festival",        color:"#D6336C", x:446, y:362 },
-  { n:"Buenos Aires",    pais:"Argentina",      seg:14, num:15, icon:"music_note",      color:"#17A2A2", x:402, y:408 },
-  { n:"Everest",         pais:"Nepal",          seg:12, num:16, icon:"summarize",       color:"#DD9414", x:882, y:214 }
+  { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2", x:738, y:186 },
+  { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414", x:783, y:224 },
+  { n:"Madrid",          pais:"España",         seg:22, num:7,  icon:"stadium",         color:"#D9531E", x:705, y:232 },
+  { n:"Lisboa",          pais:"Portugal",       seg:22, num:7,  icon:"sailing",         color:"#1E7A5F", x:676, y:243 },
+  { n:"Londres",         pais:"Reino Unido",    seg:21, num:8,  icon:"schedule",        color:"#5B3FA8", x:722, y:168 },
+  { n:"Ámsterdam",       pais:"Países Bajos",   seg:21, num:8,  icon:"pedal_bike",      color:"#D6336C", x:757, y:166 },
+  { n:"Berlín",          pais:"Alemania",       seg:20, num:9,  icon:"apartment",       color:"#17A2A2", x:793, y:172 },
+  { n:"Atenas",          pais:"Grecia",         seg:20, num:9,  icon:"temple_hindu",    color:"#DD9414", x:833, y:242 },
+  { n:"Estambul",        pais:"Turquía",        seg:19, num:10, icon:"mosque",          color:"#D9531E", x:858, y:224 },
+  { n:"El Cairo",        pais:"Egipto",         seg:19, num:10, icon:"landscape",       color:"#1E7A5F", x:866, y:276 },
+  { n:"Nairobi",         pais:"Kenia",          seg:18, num:11, icon:"pets",            color:"#5B3FA8", x:891, y:418 },
+  { n:"Ciudad del Cabo", pais:"Sudáfrica",      seg:18, num:11, icon:"terrain",         color:"#D6336C", x:809, y:566 },
+  { n:"Nueva Delhi",     pais:"India",          seg:17, num:12, icon:"temple_buddhist", color:"#17A2A2", x:1071, y:282 },
+  { n:"Pekín",           pais:"China",          seg:17, num:12, icon:"fort",            color:"#DD9414", x:1245, y:231 },
+  { n:"Tokio",           pais:"Japón",          seg:16, num:13, icon:"biotech",         color:"#D9531E", x:1348, y:250 },
+  { n:"Sídney",          pais:"Australia",      seg:16, num:13, icon:"waves",           color:"#1E7A5F", x:1399, y:566 },
+  { n:"Ciudad de México",pais:"México",         seg:15, num:14, icon:"celebration",     color:"#5B3FA8", x:287, y:324 },
+  { n:"Río de Janeiro",  pais:"Brasil",         seg:15, num:14, icon:"festival",        color:"#D6336C", x:535, y:516 },
+  { n:"Buenos Aires",    pais:"Argentina",      seg:14, num:15, icon:"music_note",      color:"#17A2A2", x:468, y:569 },
+  { n:"Everest",         pais:"Nepal",          seg:12, num:16, icon:"summarize",       color:"#DD9414", x:1114, y:285 }
 ];
 
 /* Bolsa de categorías: no se repite ninguna hasta que salgan todas */
@@ -256,21 +256,9 @@ function progresoMundo(){
 function guardarMundo(p){ localStorage.setItem("tm_mundo", JSON.stringify(p)); }
 
 /* ---------- MAPA MUNDI ---------- */
-const CONTINENTES = [
-  [[-168,65],[-140,70],[-125,60],[-123,49],[-117,32],[-105,22],[-97,16],[-83,9],[-78,20],[-80,26],[-75,35],[-70,45],[-60,47],[-55,52],[-65,60],[-80,70],[-95,72],[-125,72],[-155,71]],
-  [[-45,60],[-20,70],[-25,83],[-60,83],[-55,70]],
-  [[-81,0],[-79,-5],[-71,-18],[-70,-30],[-73,-45],[-75,-52],[-68,-55],[-64,-42],[-58,-35],[-48,-25],[-40,-20],[-35,-8],[-50,0],[-60,5],[-77,8]],
-  [[-17,15],[-17,28],[-10,35],[10,37],[25,32],[32,31],[43,12],[51,12],[41,-1],[40,-15],[35,-25],[20,-35],[15,-25],[12,-5],[9,4],[-8,4],[-13,10]],
-  [[-10,36],[-9,44],[-2,49],[2,51],[5,58],[10,58],[20,55],[28,60],[30,70],[60,70],[90,75],[140,72],[160,68],[145,55],[135,45],[122,30],[110,20],[100,10],[95,20],[88,22],[80,10],[72,20],[60,25],[50,30],[35,36],[28,40],[20,40],[12,45],[3,42]],
-  [[113,-22],[129,-12],[142,-11],[146,-19],[153,-27],[150,-37],[140,-38],[129,-32],[115,-34],[113,-26]],
-  [[130,33],[140,36],[142,43],[139,35],[133,34]]
-];
-const proj = (lon,lat) => [ (lon+180)/360*1200, (90-lat)/180*600 ];
+const MAPA_IMG = "assets/mapa.webp?v=1";
 
 function mapaSVG(p, destacada = -1){
-  const tierra = CONTINENTES.map(c =>
-    `<polygon points="${c.map(([lo,la])=>proj(lo,la).join(',')).join(' ')}" fill="#111740" stroke="#2B3160" stroke-width="1.5"/>`
-  ).join("");
 
   const ruta = ETAPAS.map((e,i)=>{
     if(i === 0) return "";
@@ -293,10 +281,9 @@ function mapaSVG(p, destacada = -1){
     </g>`;
   }).join("");
 
-  return `<svg id="mapaSvg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-label="Mapa del viaje">
-    <defs><radialGradient id="mar" cx="50%" cy="45%"><stop offset="0%" stop-color="#0B1030"/><stop offset="100%" stop-color="#05081C"/></radialGradient></defs>
-    <rect width="1200" height="600" fill="url(#mar)"/>
-    ${tierra}${ruta}${marcas}
+  return `<svg id="mapaSvg" viewBox="0 0 1600 800" width="1600" height="800" role="img" aria-label="Mapa del viaje">
+    <image href="${MAPA_IMG}" x="0" y="0" width="1600" height="800" preserveAspectRatio="none"/>
+    ${ruta}${marcas}
     <g id="avionCapa"></g>
   </svg>`;
 }
@@ -322,7 +309,7 @@ render.solo = () => {
       </div>
     </div>
     <div id="mapaWrap" class="mt-3 overflow-x-auto overflow-y-hidden">
-      <div class="min-w-[1200px]">${mapaSVG(p)}</div>
+      <div class="min-w-[1600px]">${mapaSVG(p)}</div>
     </div>
     <div id="fichaEtapa" class="px-5"></div>
   </main>${bottomNav("home")}`;
@@ -333,7 +320,7 @@ render.solo = () => {
 function centrarMapa(e){
   const wrap = document.getElementById("mapaWrap");
   if(!wrap) return;
-  const escala = 1200 / wrap.scrollWidth ? wrap.scrollWidth / 1200 : 1;
+  const escala = wrap.scrollWidth / 1600 || 1;
   wrap.scrollTo({ left: Math.max(0, e.x * escala - wrap.clientWidth/2), behavior:"smooth" });
 }
 
@@ -382,7 +369,7 @@ function despegar(a0, e, destino){
     <p class="text-center font-display font-extrabold text-xl pt-5">Rumbo a ${e.n}</p>
     <p class="text-center text-on-surface-variant text-sm mb-2">${e.pais}</p>
     <div id="mapaWrap" class="overflow-x-auto overflow-y-hidden">
-      <div class="min-w-[1200px]">
+      <div class="min-w-[1600px]">
         ${mapaSVG(progresoMundo(), destino).replace('<g id="avionCapa"></g>', `
           <path d="${d}" fill="none" stroke="#C6B6FF" stroke-width="3" stroke-dasharray="10 8" opacity="0.9">
             <animate attributeName="stroke-dashoffset" from="200" to="0" dur="${dur}s" fill="freeze"/>
