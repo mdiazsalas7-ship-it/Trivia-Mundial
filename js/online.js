@@ -39,7 +39,7 @@ window.renderOnlineMenu = function(){
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
     <h2 class="font-display font-bold text-2xl mb-1">Jugar en línea</h2>
-    <p class="text-on-surface-variant mb-6">Cada quien desde su celular, estén juntos o a miles de kilómetros.</p>
+    <p class="text-on-surface-variant mb-6">Todos responden a la vez desde su propio celular. El más rápido gana más puntos.</p>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre</p>
       <input id="onName" placeholder="Ej. Abuela Rosa" maxlength="18" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
@@ -71,9 +71,9 @@ window.createRoom = async function(){
     await setDoc(roomRef(code), {
       creada: now(), host: O.me, fase: "lobby",
       jugadores: [{ id:O.me, nombre:name, pts:0, fifty:true }],
-      qPorJugador: 5, segundos: 20,
+      totalQ: 10, segundos: 20,
       orden: [], turno: 0, hechas: 0, mano: [], carta: null,
-      deadline: 0, reto: "", ultimo: null
+      usadas: [], respuestas: {}, oculta50: {}, deadline: 0
     });
     O.code = code; listen();
   } catch(e){ showErr(e); }
@@ -117,8 +117,10 @@ function listen(){
     if(!r || r.fase !== "pregunta") return;
     const left = Math.max(0, Math.ceil((r.deadline - now())/1000));
     paintClock(left);
-    if(left <= 0 && isMyTurn() && !O.sending) timeUp();
-  }, 250);
+    if(!O.isHost) return;
+    const todos = r.jugadores.every(j => r.respuestas && r.respuestas[j.id]);
+    if((left <= 0 || todos) && !O.sending){ O.sending = true; cerrarRonda().finally(()=>{ O.sending = false; }); }
+  }, 300);
 }
 
 /* ---------- PINTAR SEGÚN LA FASE ---------- */
@@ -131,8 +133,7 @@ function paint(){
     if(O.lastCarta !== r.carta){ O.lastCarta = r.carta; return throwOnline(); }
     return paintQuestion();
   }
-  if(r.fase === "resultado") return paintResult();
-  if(r.fase === "reto") return paintReto();
+  if(r.fase === "ronda") return paintRonda();
   if(r.fase === "fin") return paintEnd();
 }
 
@@ -156,8 +157,8 @@ function paintLobby(){
       ${r.jugadores.length<2?'<p class="text-on-surface-variant text-sm mt-3">Esperando a que se una alguien más…</p>':""}
     </div>
     ${O.isHost ? `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
-      <p class="font-bold mb-3">Preguntas por jugador</p>
-      <div class="flex gap-3">${[3,5,8].map(n=>`<button onclick="setCfg('qPorJugador',${n})" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${r.qPorJugador===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}</div>
+      <p class="font-bold mb-3">Preguntas de la partida</p>
+      <div class="flex gap-3">${[5,10,15].map(n=>`<button onclick="setCfg('totalQ',${n})" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${r.totalQ===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}</div>
       <p class="font-bold mt-4 mb-3">Segundos por pregunta</p>
       <div class="flex gap-3">${[15,20,30].map(n=>`<button onclick="setCfg('segundos',${n})" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${r.segundos===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n} s</button>`).join("")}</div>
     </div>
@@ -201,31 +202,33 @@ window.startOnline = async function(){
   const orden = shuffle(QS.map((_,i)=>i));
   try {
     await updateDoc(roomRef(O.code), {
-      fase:"mazo", orden, turno:0, hechas:0,
-      mano: manoVariada(orden, []), carta:null, ultimo:null,
-      jugadores: O.room.jugadores.map(j=>({ ...j, pts:0, fifty:true }))
+      fase:"mazo", orden, turno:0, hechas:0, usadas:[],
+      mano: manoVariada(orden, []), carta:null,
+      respuestas:{}, oculta50:{},
+      jugadores: O.room.jugadores.map(j=>({ id:j.id, nombre:j.nombre, pts:0, fifty:true }))
     });
   } catch(e){ showErr(e); }
 };
 
-/* ---------- MAZO ---------- */
+/* ---------- MAZO: elige quien tiene el turno, responden todos ---------- */
 function paintDeck(){
   O.lastCarta = null; O.lastFx = null;
   const r = O.room;
   const mine = isMyTurn();
-  const ronda = Math.floor(r.hechas / r.jugadores.length) + 1;
+  const ronda = r.hechas + 1;
   app.innerHTML = `${topBar({exit:false})}
   <main class="flex-1 px-5 py-5 pb-10 max-w-lg mx-auto w-full">
     ${scoreStrip()}
     <div class="text-center my-4">
-      <h2 class="font-display font-bold text-2xl">${mine ? "¡Es tu turno!" : "Turno de "+turnName()}</h2>
-      <p class="text-on-surface-variant text-sm mt-1">Pregunta ${ronda} de ${r.qPorJugador} · sala ${O.code}</p>
+      <p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Pregunta ${ronda} de ${r.totalQ}</p>
+      <h2 class="font-display font-bold text-2xl">${mine ? "Elige la carta" : turnName()+" elige la carta"}</h2>
+      <p class="text-on-surface-variant text-sm mt-1">Después responden todos a la vez</p>
     </div>
     <div class="grid grid-cols-2 gap-4 ${mine?"":"opacity-60 pointer-events-none"}">
-      ${r.mano.map((qi,i)=>`<button onclick="pickOnline(${qi})" class="card-perspective aspect-[3/4] relative w-full active:translate-y-1 transition-transform">
+      ${r.mano.map((qi,i)=>`<button onclick="pickOnline(${qi})" class="card-perspective aspect-[3/4] relative w-full active:translate-y-1 transition-transform deal-in" style="animation-delay:${i*0.08}s">
         <div class="absolute inset-0 floating-card" style="--rot:0deg;animation-delay:${i*-1.4}s;">${cardFace(QS[qi].c)}</div></button>`).join("")}
     </div>
-    <p class="text-center text-on-surface-variant mt-5">${mine ? "Elige una carta para revelar tu pregunta" : "Esperando a que "+turnName()+" elija su carta…"}</p>
+    <p class="text-center text-on-surface-variant mt-5">${mine ? "Tu elección marca la categoría para todos" : "Prepárate…"}</p>
     ${hostTools()}
   </main>`;
 }
@@ -235,13 +238,13 @@ window.pickOnline = async function(qi){
   O.sending = true;
   try {
     await updateDoc(roomRef(O.code), {
-      fase:"pregunta", carta:qi, deadline: now() + O.room.segundos*1000, oculta:[]
+      fase:"pregunta", carta:qi, deadline: now() + O.room.segundos*1000 + 2600, respuestas:{}
     });
   } catch(e){ showErr(e); }
   O.sending = false;
 };
 
-/* ---------- PREGUNTA ---------- */
+/* ---------- PREGUNTA SIMULTÁNEA ---------- */
 function throwOnline(){
   const r = O.room, q = QS[r.carta], c = CATS[q.c];
   FX.whoosh(); vibrate(20);
@@ -262,21 +265,33 @@ function throwOnline(){
   setTimeout(()=>{ if(O.room && O.room.fase === "pregunta") paintQuestion(); }, 2500);
 }
 
+function paintClock(left){
+  const clk = document.getElementById("oClk"), ring = document.getElementById("oRing");
+  if(clk) clk.textContent = left;
+  if(ring){
+    ring.style.strokeDashoffset = 251.3 * (1 - left / (O.room.segundos || 20));
+    if(left <= 5){ ring.setAttribute("stroke", "#FF6B6B"); if(clk){ clk.classList.add("text-error"); clk.classList.remove("text-primary"); } }
+  }
+  if(left <= 5 && left > 0 && O.lastBeep !== left && !yaRespondi()){ O.lastBeep = left; FX.hurry(); }
+}
+
+function yaRespondi(){ return !!(O.room?.respuestas && O.room.respuestas[O.me]); }
+
 function paintQuestion(){
-  const r = O.room, q = QS[r.carta], c = CATS[q.c], mine = isMyTurn();
+  const r = O.room, q = QS[r.carta], c = CATS[q.c];
   const left = Math.max(0, Math.ceil((r.deadline - now())/1000));
   const me = r.jugadores.find(j=>j.id===O.me);
+  if(yaRespondi()) return paintEsperando();
   app.innerHTML = `${topBar({exit:false})}
-  <main class="flex-1 px-5 py-5 pb-10 max-w-lg mx-auto w-full flex flex-col items-center">
-    ${scoreStrip()}
-    <div class="relative w-24 h-24 my-3">
+  <main class="flex-1 px-5 py-4 pb-10 max-w-lg mx-auto w-full flex flex-col items-center">
+    <div class="relative w-24 h-24 mb-2">
       <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96" aria-hidden="true">
-        <circle cx="48" cy="48" r="40" fill="transparent" stroke="#e6e0ea" stroke-width="9"></circle>
+        <circle cx="48" cy="48" r="40" fill="transparent" stroke="#2B3160" stroke-width="9"></circle>
         <circle id="oRing" cx="48" cy="48" r="40" fill="transparent" stroke="${c.color}" stroke-width="9" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0"></circle>
       </svg>
       <span id="oClk" class="absolute inset-0 flex items-center justify-center font-display font-extrabold text-4xl text-primary">${left}</span>
     </div>
-    <p class="font-bold mb-3">${mine ? "Responde tú" : "Responde "+turnName()}</p>
+    <p class="font-bold mb-3 text-center">¡Responden todos! Cuanto más rápido, más puntos</p>
     <div class="w-full bg-surface-container rounded-[28px] border-4 p-5" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
       <div class="flex justify-center mb-4">
         <span class="text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full flex items-center gap-1" style="background:${c.color}">
@@ -284,23 +299,34 @@ function paintQuestion(){
       <p class="font-display font-bold text-xl text-center mb-5">${q.q}</p>
       <div class="grid gap-3" id="oOpts">
         ${q.o.map((o,j)=>{
-          const hidden = (r.oculta||[]).includes(j);
-          return `<button ${mine&&!hidden?`onclick="answerOnline(${j})"`:"disabled"} class="w-full border-2 border-outline-variant rounded-2xl py-3.5 px-4 font-bold text-left block-shadow-sm transition-all ${hidden?"opacity-30":""} ${mine&&!hidden?"active-btn-press hover:border-primary-container":"opacity-70"}">${o}</button>`;
+          const hidden = (r.oculta50 && r.oculta50[O.me] || []).includes(j);
+          return `<button ${hidden?"disabled":`onclick="answerOnline(${j})"`} class="w-full border-2 border-outline-variant rounded-2xl py-3.5 px-4 font-bold text-left block-shadow-sm transition-all ${hidden?"opacity-25":"active-btn-press hover:border-primary-container"}">${o}</button>`;
         }).join("")}
       </div>
-      ${mine && me?.fifty ? `<button onclick="fiftyOnline()" class="mt-4 w-full border-2 border-cat-ciencia text-cat-ciencia rounded-xl py-2.5 font-bold flex items-center justify-center gap-1 active:translate-y-1 transition-all">
+      ${me?.fifty ? `<button onclick="fiftyOnline()" class="mt-4 w-full border-2 border-cat-ciencia text-cat-ciencia rounded-xl py-2.5 font-bold flex items-center justify-center gap-1 active:translate-y-1 transition-all">
         <span class="material-symbols-outlined" style="font-size:18px;">bolt</span> Lifeline 50/50</button>` : ""}
     </div>
-    ${hostTools()}
   </main>`;
 }
 
-function paintClock(left){
-  const clk = document.getElementById("oClk"), ring = document.getElementById("oRing");
-  if(!clk || !ring) return;
-  clk.textContent = left;
-  ring.style.strokeDashoffset = 251.3 * (1 - left / (O.room.segundos || 20));
-  if(left <= 5){ clk.classList.add("text-error"); clk.classList.remove("text-primary"); ring.setAttribute("stroke", "#ba1a1a"); }
+function paintEsperando(){
+  const r = O.room;
+  const total = r.jugadores.length;
+  const hechas = Object.keys(r.respuestas || {}).length;
+  const left = Math.max(0, Math.ceil((r.deadline - now())/1000));
+  app.innerHTML = `${topBar({exit:false})}
+  <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-8 w-full text-center block-shadow-sm">
+      <span class="material-symbols-outlined text-primary msf urgent" style="font-size:46px;">hourglass_top</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">Respuesta enviada</h2>
+      <p class="text-on-surface-variant mt-1">Esperando a los demás… <span id="oClk">${left}</span> s</p>
+      <p class="font-display font-extrabold text-3xl text-primary mt-4">${hechas} / ${total}</p>
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        ${r.jugadores.map(j=>`<span class="px-3 py-1.5 rounded-full text-sm font-bold border-2 ${r.respuestas && r.respuestas[j.id] ? "border-success text-success" : "border-outline-variant text-on-surface-variant"}">${j.nombre}</span>`).join("")}
+      </div>
+    </div>
+    ${hostTools()}
+  </main>`;
 }
 
 window.fiftyOnline = async function(){
@@ -308,123 +334,94 @@ window.fiftyOnline = async function(){
   const wrong = shuffle(q.o.map((_,i)=>i).filter(i=>i!==q.a)).slice(0,2);
   try {
     await updateDoc(roomRef(O.code), {
-      oculta: wrong,
+      ["oculta50." + O.me]: wrong,
       jugadores: r.jugadores.map(j => j.id===O.me ? { ...j, fifty:false } : j)
     });
   } catch(e){ showErr(e); }
 };
 
 window.answerOnline = async function(j){
-  if(!isMyTurn() || O.sending) return;
+  if(O.sending || yaRespondi()) return;
   O.sending = true;
   const r = O.room, q = QS[r.carta], c = CATS[q.c];
-  const left = Math.max(0, Math.ceil((r.deadline - now())/1000));
-  try {
-    if(j === q.a){
-      const base = c.x2 ? 20 : 10;
-      const fast = left >= r.segundos*0.75 ? 5 : (left >= r.segundos*0.4 ? 3 : 0);
-      const pts = base + fast;
-      await updateDoc(roomRef(O.code), {
-        fase:"resultado",
-        ultimo:{ ok:true, pts, base, fast, quien:turnName() },
-        jugadores: r.jugadores.map((p,i) => i===r.turno ? { ...p, pts:p.pts+pts } : p)
-      });
-    } else {
-      await updateDoc(roomRef(O.code), {
-        fase:"reto",
-        reto: RETOS[Math.floor(Math.random()*RETOS.length)],
-        ultimo:{ ok:false, timeout:false, correcta:q.o[q.a], quien:turnName() }
-      });
-    }
-  } catch(e){ showErr(e); }
-  O.sending = false;
-};
-
-async function timeUp(){
-  O.sending = true;
-  const r = O.room, q = QS[r.carta];
+  const restante = Math.max(0, (r.deadline - now())/1000);
+  const ok = j === q.a;
+  const base = c.x2 ? 20 : 10;
+  const rapidez = ok ? Math.round(base * 0.5 * Math.min(1, restante / r.segundos)) : 0;
+  const pts = ok ? base + rapidez : 0;
+  if(ok){ FX.tone(880,0.1,"triangle",0.14); } else { FX.tone(200,0.15,"sawtooth",0.1); }
   try {
     await updateDoc(roomRef(O.code), {
-      fase:"reto",
-      reto: RETOS[Math.floor(Math.random()*RETOS.length)],
-      ultimo:{ ok:false, timeout:true, correcta:q.o[q.a], quien:turnName() }
+      ["respuestas." + O.me]: { j, ok, pts, t: now() }
     });
   } catch(e){ showErr(e); }
   O.sending = false;
-}
-
-/* ---------- RESULTADO Y RETO ---------- */
-function paintResult(){
-  const r = O.room, u = r.ultimo || {}, mine = isMyTurn();
-  if(O.lastFx !== "ok"){ O.lastFx = "ok"; FX.good(0); burstConfetti(45); flashPoints("+"+u.pts, "#1E7A5F"); vibrate([30,50,30]); }
-  app.innerHTML = `${topBar({exit:false})}
-  <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full">
-    ${scoreStrip()}
-    <div class="bg-surface-container border-4 border-success rounded-[28px] p-8 text-center mt-5 animate-pop" style="box-shadow:0 8px 0 0 #0f5340;">
-      <span class="material-symbols-outlined text-success msf" style="font-size:56px;">check_circle</span>
-      <h2 class="font-display font-extrabold text-3xl mt-2">¡Correcto${mine?"":", "+u.quien}!</h2>
-      <p class="font-display font-extrabold text-4xl text-success mt-1">+${u.pts} pts</p>
-      <p class="text-on-surface-variant mt-2">${u.base} base${u.fast>0?` + ${u.fast} por rapidez`:""}</p>
-    </div>
-    ${advanceBtn()}
-  </main>`;
-}
-
-function paintReto(){
-  const r = O.room, u = r.ultimo || {}, mine = isMyTurn();
-  if(O.lastFx !== "bad"){ O.lastFx = "bad"; FX.bad(); shakeScreen(); vibrate([80,60,80]); setTimeout(()=>FX.drum(), 300); }
-  app.innerHTML = `${topBar({exit:false})}
-  <main class="flex-1 px-5 py-5 max-w-lg mx-auto w-full flex flex-col items-center">
-    ${scoreStrip()}
-    <p class="font-bold text-error mt-4 mb-1">${u.timeout?"¡Se acabó el tiempo!":"Incorrecto"}</p>
-    <p class="text-on-surface-variant mb-4">La respuesta era: <span class="font-bold text-on-surface">${u.correcta}</span></p>
-    <div class="w-full bg-cat-historia rounded-[28px] border-4 border-white p-6 text-center relative overflow-hidden animate-pop" style="box-shadow:0 8px 0 0 #8a5a08;">
-      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(#fff 2px,transparent 2px);background-size:18px 18px;"></div>
-      <div class="relative z-10">
-        <span class="material-symbols-outlined text-white msf" style="font-size:48px;">local_fire_department</span>
-        <p class="text-white/90 text-xs font-bold tracking-widest uppercase mt-1">Reto para ${u.quien} · 5 puntos</p>
-        <p class="text-white font-display font-extrabold text-2xl mt-3 leading-snug">${r.reto}</p>
-      </div>
-    </div>
-    <p class="text-on-surface-variant text-sm mt-5 mb-3 text-center">${mine ? "Cumple el reto por videollamada. El grupo decide." : "¿"+u.quien+" lo cumplió? Vota:"}</p>
-    <div class="w-full grid gap-3">
-      <button onclick="votarReto(true)" class="w-full bg-success text-white py-4 rounded-2xl font-bold text-lg active-btn-press transition-all" style="box-shadow:0 6px 0 0 #0f5340;">Lo cumplió (+5)</button>
-      <button onclick="votarReto(false)" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
-    </div>
-  </main>`;
-}
-
-window.votarReto = async function(ok){
-  if(O.sending) return;
-  O.sending = true;
-  const r = O.room;
-  try {
-    if(ok) await updateDoc(roomRef(O.code), { jugadores: r.jugadores.map((p,i)=> i===r.turno ? { ...p, pts:p.pts+5 } : p) });
-    await nextOnline();
-  } catch(e){ showErr(e); }
-  O.sending = false;
 };
 
-function advanceBtn(){
-  return `<button onclick="nextOnline()" class="mt-6 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">Siguiente turno</button>`;
+/* ---------- RESULTADOS DE LA RONDA ---------- */
+async function cerrarRonda(){
+  const r = O.room;
+  if(!r || r.fase !== "pregunta") return;
+  const resp = r.respuestas || {};
+  const jugadores = r.jugadores.map(j => {
+    const mi = resp[j.id];
+    return { ...j, pts: j.pts + (mi ? mi.pts : 0), ultimo: mi ? { ok: mi.ok, pts: mi.pts } : { ok:false, pts:0, sin:true } };
+  });
+  try { await updateDoc(roomRef(O.code), { fase:"ronda", jugadores }); }
+  catch(e){ showErr(e); }
+}
+
+function paintRonda(){
+  const r = O.room, q = QS[r.carta], c = CATS[q.c];
+  const mio = r.jugadores.find(j=>j.id===O.me);
+  const acerte = mio?.ultimo?.ok;
+  if(O.lastFx !== "ronda"){
+    O.lastFx = "ronda";
+    if(acerte){ FX.good(0); burstConfetti(40); flashPoints("+"+mio.ultimo.pts, "#37D399"); vibrate([30,50,30]); }
+    else { FX.bad(); shakeScreen(); vibrate(80); }
+  }
+  const orden = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
+  app.innerHTML = `${topBar({exit:false})}
+  <main class="flex-1 px-5 py-5 pb-10 max-w-lg mx-auto w-full">
+    <div class="bg-surface-container border-4 rounded-[28px] p-5 text-center animate-pop" style="border-color:${acerte?"#1E7A5F":c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <span class="material-symbols-outlined msf" style="font-size:44px;color:${acerte?"#37D399":"#FF6B6B"};">${acerte?"check_circle":"cancel"}</span>
+      <h2 class="font-display font-extrabold text-2xl mt-1">${acerte?"¡Correcto! +"+mio.ultimo.pts:"Fallaste"}</h2>
+      <p class="text-on-surface-variant mt-2 text-sm">La respuesta era</p>
+      <p class="font-display font-extrabold text-xl" style="color:${c.color}">${q.o[q.a]}</p>
+    </div>
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-4 mt-4 block-shadow-sm">
+      <p class="font-bold mb-2 text-sm uppercase tracking-wider text-on-surface-variant">Clasificación</p>
+      ${orden.map((p,i)=>`<div class="flex items-center justify-between py-2 border-b-2 border-outline-variant last:border-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-6 text-center font-display font-extrabold ${i===0?"text-cat-historia":"text-on-surface-variant"}">${i+1}</span>
+          <span class="material-symbols-outlined msf" style="font-size:17px;color:${p.ultimo?.ok?"#37D399":(p.ultimo?.sin?"#6F6A92":"#FF6B6B")};">${p.ultimo?.ok?"check_circle":(p.ultimo?.sin?"schedule":"cancel")}</span>
+          <span class="font-bold truncate">${p.nombre}${p.id===O.me?" (tú)":""}</span>
+        </div>
+        <div class="text-right flex-shrink-0">
+          ${p.ultimo?.pts?`<span class="text-success font-bold text-sm mr-2">+${p.ultimo.pts}</span>`:""}
+          <span class="font-display font-extrabold">${p.pts}</span>
+        </div></div>`).join("")}
+    </div>
+    ${O.isHost
+      ? `<button onclick="nextOnline()" class="mt-5 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">Siguiente pregunta</button>`
+      : `<p class="text-center text-on-surface-variant mt-5">Esperando al anfitrión…</p>`}
+  </main>`;
 }
 
 window.nextOnline = async function(){
   const r = O.room;
   const hechas = r.hechas + 1;
-  const total = r.jugadores.length * r.qPorJugador;
-  if(hechas >= total || hechas >= r.orden.length){
-    return updateDoc(roomRef(O.code), { fase:"fin", hechas });
-  }
-  const usadas = r.orden.slice(0, hechas*1);
-  const restantes = r.orden.filter(qi => qi !== r.carta && !usadas.includes(qi));
-  const pool = restantes.length >= 4 ? restantes : r.orden.filter(qi => qi !== r.carta);
+  if(hechas >= r.totalQ) return updateDoc(roomRef(O.code), { fase:"fin", hechas });
+  const usadas = (r.usadas || []).concat([r.carta]);
+  const restantes = r.orden.filter(qi => !usadas.includes(qi));
+  if(restantes.length < 4) return updateDoc(roomRef(O.code), { fase:"fin", hechas });
   try {
     await updateDoc(roomRef(O.code), {
-      fase:"mazo", hechas,
+      fase:"mazo", hechas, usadas,
       turno: (r.turno + 1) % r.jugadores.length,
-      mano: manoVariada(pool, [r.carta]),
-      carta: null, oculta: [], ultimo: null
+      mano: manoVariada(restantes, []),
+      carta:null, respuestas:{}, oculta50:{},
+      jugadores: r.jugadores.map(j => { const { ultimo, ...resto } = j; return resto; })
     });
   } catch(e){ showErr(e); }
 };
@@ -432,8 +429,7 @@ window.nextOnline = async function(){
 /* ---------- FIN ---------- */
 function paintEnd(){
   const r = O.room;
-  FX.music.para();
-  if(O.lastFx !== "fin"){ O.lastFx = "fin"; FX.fanfare(); burstConfetti(90, true); setTimeout(()=>burstConfetti(60,true),700); vibrate([60,40,60,40,120]); }
+  if(O.lastFx !== "fin"){ O.lastFx = "fin"; FX.music.para(); FX.fanfare(); burstConfetti(90, true); setTimeout(()=>burstConfetti(60,true),700); vibrate([60,40,60,40,120]); }
   const s = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   const tie = s.length>1 && s[0].pts===s[1].pts;
   const medals = ["#DD9414","#9ca3af","#b45309"];
@@ -446,7 +442,7 @@ function paintEnd(){
       <div class="text-left">
         ${s.map((p,i)=>`<div class="flex items-center justify-between py-3 border-b-2 border-outline-variant last:border-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${i<3?medals[i]:"#cac4d4"}">${i+1}</div>
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${i<3?medals[i]:"#2B3160"}">${i+1}</div>
             <span class="font-bold">${p.nombre}${p.id===O.me?" (tú)":""}</span></div>
           <span class="font-display font-extrabold text-primary">${p.pts} pts</span></div>`).join("")}
       </div>
@@ -461,14 +457,23 @@ function paintEnd(){
 /* ---------- COMUNES ---------- */
 function scoreStrip(){
   const r = O.room;
+  const orden = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   return `<div class="flex gap-2 overflow-x-auto pb-1">
-    ${r.jugadores.map((j,i)=>`<div class="flex-shrink-0 px-3 py-2 rounded-xl border-2 ${i===r.turno?"border-primary-container bg-primary-fixed":"border-outline-variant bg-white"}">
-      <p class="text-xs font-bold ${i===r.turno?"text-primary":"text-on-surface-variant"}">${j.nombre}${j.id===O.me?" (tú)":""}</p>
+    ${orden.map((j)=>`<div class="flex-shrink-0 px-3 py-2 rounded-xl border-2 ${j.id===O.me?"border-primary-container bg-primary-fixed":"border-outline-variant bg-surface-container"}">
+      <p class="text-xs font-bold ${j.id===O.me?"text-primary":"text-on-surface-variant"}">${j.nombre}${j.id===O.me?" (tú)":""}</p>
       <p class="font-display font-extrabold text-lg">${j.pts}</p></div>`).join("")}
   </div>`;
 }
 
 function hostTools(){
   if(!O.isHost) return "";
-  return `<button onclick="nextOnline()" class="mt-6 mx-auto block text-on-surface-variant text-sm font-bold underline">Saltar turno (anfitrión)</button>`;
+  return `<button onclick="forzarSiguiente()" class="mt-6 mx-auto block text-on-surface-variant text-sm font-bold underline">Forzar siguiente (anfitrión)</button>`;
 }
+
+window.forzarSiguiente = function(){
+  const r = O.room;
+  if(!r) return;
+  if(r.fase === "pregunta") return cerrarRonda();
+  if(r.fase === "ronda") return nextOnline();
+  if(r.fase === "mazo" && r.mano?.length) return pickOnline(r.mano[0]);
+};

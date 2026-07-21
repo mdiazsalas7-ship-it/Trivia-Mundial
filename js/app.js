@@ -111,7 +111,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "1.7";
+const APP_VER = "2.0";
 const render = {};
 
 render.home = () => {
@@ -123,12 +123,12 @@ render.home = () => {
     </div>
     <div class="z-10 w-full flex flex-col gap-4">
       <button onclick="go('solo')" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-2xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-3">
-        <span class="material-symbols-outlined msf">explore</span><span>Modo Aventura</span></button>
+        <span class="material-symbols-outlined msf">explore</span><span>Vuelta al Mundo</span></button>
       <button onclick="go('setup')" class="w-full bg-cat-entret text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #8f1f47;">
         <span class="material-symbols-outlined msf">groups</span><span>En grupo aquí</span></button>
       <button onclick="go('online')" class="w-full bg-cat-cultura text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #0d6b6b;">
         <span class="material-symbols-outlined msf">travel_explore</span><span>En línea</span></button>
-      <p class="text-center text-on-surface-variant text-sm -mt-1">Aventura = tú contra rivales legendarios · En grupo = hasta 8 en un celular · En línea = cada quien con el suyo</p>
+      <p class="text-center text-on-surface-variant text-sm -mt-1">Vuelta al Mundo = tu aventura en solitario · En grupo = hasta 8 en un celular · En línea = cada quien con el suyo</p>
       <div class="grid grid-cols-3 gap-3">
         <button onclick="go('cats')" class="bg-cat-ciencia text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">category</span><span class="text-sm">Categorías</span></button>
         <button onclick="go('board')" class="bg-cat-entret text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">military_tech</span><span class="text-sm">Marcador</span></button>
@@ -213,62 +213,82 @@ render.settings = () => {
   </main>${bottomNav("settings")}`;
 };
 
+const ETAPAS = [
+  { n:"París",     pais:"Francia",   cat:"Cultura",         seg:22, num:6,  icon:"tour" },
+  { n:"Roma",      pais:"Italia",    cat:"Historia",        seg:20, num:7,  icon:"account_balance" },
+  { n:"Río",       pais:"Brasil",    cat:"Entretenimiento", seg:18, num:7,  icon:"celebration" },
+  { n:"Tokio",     pais:"Japón",     cat:"Ciencia",         seg:16, num:8,  icon:"biotech" },
+  { n:"Nairobi",   pais:"Kenia",     cat:"Deportes",        seg:15, num:8,  icon:"sports_score" },
+  { n:"La Cumbre", pais:"El mundo",  cat:null,              seg:14, num:10, icon:"public" }
+];
+
+function progresoMundo(){
+  try { return JSON.parse(localStorage.getItem("tm_mundo")) || { max:0, estrellas:{}, mejor:{} }; }
+  catch(e){ return { max:0, estrellas:{}, mejor:{} }; }
+}
+function guardarMundo(p){ localStorage.setItem("tm_mundo", JSON.stringify(p)); }
+
 render.solo = () => {
-  if(S._bots===undefined) S._bots = 1;
-  if(S._dif===undefined) S._dif = "normal";
-  const difs = { facil:{n:"Fácil",d:"Se equivoca seguido",c:"#1E7A5F"}, normal:{n:"Normal",d:"Buen rival",c:"#DD9414"}, dificil:{n:"Difícil",d:"Casi nunca falla",c:"#D9531E"} };
+  const p = progresoMundo();
+  const totalEstrellas = Object.values(p.estrellas).reduce((a,b)=>a+b,0);
   app.innerHTML = `${topBar({back:"go('home')"})}
-  <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
+  <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
     <div class="text-center mb-5">
       <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">explore</span>
-      <h2 class="font-display font-bold text-2xl">Modo Aventura</h2>
-      <p class="text-on-surface-variant">Enfréntate a rivales legendarios: solo preguntas, sin retos. Encadena aciertos y conquista el podio.</p>
-    </div>
-    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
-      <p class="font-bold mb-3">Tu nombre</p>
-      <input id="soloName" placeholder="Tu nombre" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
-    </div>
-    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
-      <p class="font-bold mb-1">¿Cuántos rivales?</p>
-      <p class="text-on-surface-variant text-sm mb-3">Marco Polo, Cleopatra y Da Vinci te esperan</p>
-      <div class="grid grid-cols-3 gap-3">
-        ${[1,2,3].map(n=>`<button onclick="S._bots=${n};render.solo()" class="py-3 rounded-xl font-display font-extrabold text-xl border-2 transition-all active:translate-y-1 ${S._bots===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
+      <h2 class="font-display font-bold text-2xl">Vuelta al Mundo</h2>
+      <p class="text-on-surface-variant">Seis destinos, tres vidas por etapa. ¿Llegarás a La Cumbre?</p>
+      <div class="inline-flex items-center gap-1 mt-3 bg-surface-container border-2 border-outline-variant rounded-full px-4 py-1.5">
+        <span class="material-symbols-outlined msf text-cat-historia" style="font-size:18px;">star</span>
+        <span class="font-display font-extrabold">${totalEstrellas}</span>
+        <span class="text-on-surface-variant text-sm">/ ${ETAPAS.length*3}</span>
       </div>
     </div>
-    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
-      <p class="font-bold mb-3">Dificultad</p>
-      <div class="grid gap-3">
-        ${Object.entries(difs).map(([k,v])=>`<button onclick="S._dif='${k}';render.solo()" class="w-full py-3 px-4 rounded-xl font-bold border-2 text-left flex items-center justify-between transition-all active:translate-y-1 ${S._dif===k?"text-white border-transparent":"border-outline-variant text-on-surface-variant"}" style="${S._dif===k?`background:${v.c};`:""}">
-          <span>${v.n}</span><span class="text-sm font-normal ${S._dif===k?"text-white/80":"text-on-surface-variant"}">${v.d}</span></button>`).join("")}
-      </div>
+    <div class="grid gap-3">
+      ${ETAPAS.map((e,i)=>{
+        const abierta = i <= p.max;
+        const est = p.estrellas[i] || 0;
+        const c = e.cat ? CATS[e.cat] : CATS["Sorpresa"];
+        return `<button ${abierta?`onclick="empezarEtapa(${i})"`:"disabled"} class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 transition-all ${abierta?"border-outline-variant bg-surface-container active:translate-y-1 block-shadow-sm":"border-outline-variant/40 opacity-45"}">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${abierta?c.color:"#2B3160"}">
+            <span class="material-symbols-outlined text-white msf" style="font-size:26px;">${abierta?e.icon:"lock"}</span></div>
+          <div class="flex-1 min-w-0">
+            <p class="font-display font-extrabold text-lg leading-tight">${i+1}. ${e.n}</p>
+            <p class="text-on-surface-variant text-sm">${e.pais} · ${e.cat || "Todas las categorías"} · ${e.num} preguntas</p>
+            ${abierta ? `<div class="flex items-center gap-0.5 mt-1">
+              ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"}" style="font-size:17px;">star</span>`).join("")}
+              ${p.mejor[i]?`<span class="text-on-surface-variant text-xs ml-2">récord ${p.mejor[i]} pts</span>`:""}
+            </div>` : `<p class="text-on-surface-variant text-xs mt-1">Supera la etapa anterior para desbloquear</p>`}
+          </div>
+          ${abierta?'<span class="material-symbols-outlined text-primary">chevron_right</span>':""}
+        </button>`;
+      }).join("")}
     </div>
-    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-6">
-      <p class="font-bold mb-3">Preguntas por jugador</p>
-      <div class="flex gap-3">
-        ${[3,5,8,10].map(n=>`<button onclick="S.qPerPlayer=${n};render.solo()" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${S.qPerPlayer===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
-      </div>
-    </div>
-    <button onclick="startSolo()" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2">
-      <span class="material-symbols-outlined">play_arrow</span> ¡Empezar!</button>
-  </main>`;
+  </main>${bottomNav("home")}`;
 };
 
-const BOT_NAMES = ["Marco Polo","Cleopatra","Da Vinci"];
-const BOT_ACC = { facil:0.45, normal:0.68, dificil:0.88 };
-
-function startSolo(){
-  const el = document.getElementById("soloName");
-  const yo = (el && el.value.trim()) || "Tú";
-  localStorage.setItem("tm_name", yo);
-  S.players = [yo, ...BOT_NAMES.slice(0, S._bots)];
-  S.modo = 'aventura';
+function empezarEtapa(i){
+  const e = ETAPAS[i];
+  S.modo = 'mundo'; S.etapa = i;
+  S.vidas = 3; S.streak = 0;
+  S.players = [localStorage.getItem("tm_name") || "Tú"];
+  S.bots = [false];
+  S.scores = [0];
+  S.fifty = [true];
+  S.turn = 0; S.qDone = 0; S.qPerPlayer = e.num;
+  S.timerSecs = e.seg;
+  const pool = QS.map((_,k)=>k).filter(k => e.cat ? QS[k].c === e.cat : true);
+  S.pool = shuffle(pool);
+  S.used = new Set();
   if(FX.on && FX.music.on) FX.music.arranca();
-  S.bots = [false, ...Array(S._bots).fill(true)];
-  S.scores = S.players.map(()=>0);
-  S.fifty = S.players.map(()=>true);
-  S.turn=0; S.qDone=0; S.streak=0; S.used=new Set();
   go("deck");
 }
+
+function vidasHTML(){
+  return `<div class="flex items-center justify-center gap-1 mb-2">
+    ${[0,1,2].map(i=>`<span class="material-symbols-outlined ${i<S.vidas?"msf text-error":"text-outline-variant"}" style="font-size:22px;">favorite</span>`).join("")}
+  </div>`;
+}
+
 
 render.setup = () => {
   if(S._np===undefined) S._np=3;
@@ -315,8 +335,9 @@ function startGame(){
 }
 
 render.deck = () => {
-  const avail = QS.map((_,i)=>i).filter(i=>!S.used.has(i));
-  if(avail.length===0) return finishGame();
+  const base = S.modo === 'mundo' ? S.pool : QS.map((_,i)=>i);
+  const avail = base.filter(i=>!S.used.has(i));
+  if(avail.length===0) return S.modo === 'mundo' ? etapaSuperada() : finishGame();
   let hand = [];
   const porCat = {};
   shuffle(avail.slice()).forEach(qi => { const c = QS[qi].c; if(!porCat[c]) porCat[c] = qi; });
@@ -330,13 +351,17 @@ render.deck = () => {
   app.innerHTML = `${topBar({exit:true})}
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
     <div class="text-center mb-4">
+      ${S.modo === 'mundo' ? vidasHTML() : ""}
       ${racha}
-      <p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Partida en curso</p>
-      <h2 class="font-display font-bold text-2xl">Turno de: <span class="text-primary-container">${S.players[S.turn]}</span></h2>
-      <p class="text-on-surface-variant text-sm mt-1">Pregunta ${Math.floor(S.qDone/S.players.length)+1} de ${S.qPerPlayer}</p>
+      ${S.modo === 'mundo'
+        ? `<p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Etapa ${S.etapa+1} · ${ETAPAS[S.etapa].n}</p>
+           <h2 class="font-display font-bold text-2xl">Pregunta ${S.qDone+1} <span class="text-on-surface-variant">de ${S.qPerPlayer}</span></h2>`
+        : `<p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Partida en curso</p>
+           <h2 class="font-display font-bold text-2xl">Turno de: <span class="text-primary-container">${S.players[S.turn]}</span></h2>
+           <p class="text-on-surface-variant text-sm mt-1">Pregunta ${Math.floor(S.qDone/S.players.length)+1} de ${S.qPerPlayer}</p>`}
     </div>
     <div class="bg-surface-container-low border-2 border-outline-variant rounded-xl p-4 mb-5 text-center block-shadow-sm">
-      <p class="text-on-surface-variant font-bold">${S.modo === "aventura" ? "Elige tu categoría y lánzala" : "¡Lanza tu carta al aire!"}</p>
+      <p class="text-on-surface-variant font-bold">${S.modo === "mundo" ? "Elige tu carta y lánzala" : "¡Lanza tu carta al aire!"}</p>
     </div>
     <div class="grid grid-cols-2 gap-4">
       ${hand.map((qi,i)=>`<button onclick="throwCard(${qi})" class="card-perspective aspect-[3/4] relative w-full active:translate-y-1 transition-transform group deal-in" style="--tilt:${(i%2?2:-2)}deg;animation-delay:${i*0.09}s;">
@@ -444,7 +469,7 @@ function showQuestion(qi){
       if(r){ r.style.strokeDashoffset = ring*(1-S.left/S.timerSecs); if(S.left<=5) r.setAttribute("stroke","#ba1a1a"); }
       if(S.left<=5 && S.left>0){ FX.hurry(); vibrate(15); if(w) w.classList.add("urgent"); }
       else if(S.left<=10){ FX.tick(); }
-      if(S.left<=0){ stopTimer(); S.modo === "aventura" ? showFallo(qi,true) : showReto(qi,true); }
+      if(S.left<=0){ stopTimer(); showReto(qi,true); }
     },1000);
   },900);
 }
@@ -496,14 +521,15 @@ function answer(j,qi){
     if(btns[j]){ btns[j].style.background = "#C62828"; btns[j].style.color = "#fff"; btns[j].style.borderColor = "#ba1a1a"; }
     if(btns[q.a]){ btns[q.a].style.background = "#1E7A5F"; btns[q.a].style.color = "#fff"; btns[q.a].style.borderColor = "#1E7A5F"; }
     FX.bad(); vibrate([80,60,80]); shakeScreen();
-    setTimeout(()=>{ S.modo === "aventura" ? showFallo(qi,false) : showReto(qi,false); }, 900);
+    setTimeout(()=>showReto(qi,false), 900);
   }
 }
 
 function showReto(qi,timeout){
   const q=QS[qi];
   S.streak = 0;
-  if(S.modo === 'aventura') return showFallo(qi, timeout);
+  if(S.modo === 'mundo') return perderVida(qi, timeout);
+  return showRebote(qi, timeout);
   const r=RETOS[Math.floor(Math.random()*RETOS.length)];
   if(timeout){ FX.bad(); shakeScreen(); vibrate(120); }
   setTimeout(()=>FX.drum(), 250);
@@ -531,31 +557,169 @@ function showReto(qi,timeout){
   }
 }
 
-function showFallo(qi, timeout){
+function perderVida(qi, timeout){
   const q = QS[qi], c = CATS[q.c];
-  const mio = !isBot();
-  if(timeout && mio){ FX.bad(); shakeScreen(); vibrate(120); }
+  S.vidas--;
+  FX.bad(); shakeScreen(); vibrate(120);
+  const muerto = S.vidas <= 0;
   app.innerHTML = `${topBar({exit:true})}
   <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
     <div class="bg-surface-container border-4 rounded-[28px] p-8 text-center w-full animate-pop" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
-      <span class="material-symbols-outlined text-error msf" style="font-size:52px;">cancel</span>
-      <h2 class="font-display font-extrabold text-2xl mt-2">${timeout?"¡Se acabó el tiempo!":(mio?"Fallaste":S.players[S.turn]+" falló")}</h2>
+      ${vidasHTML()}
+      <h2 class="font-display font-extrabold text-2xl mt-1">${timeout?"¡Se acabó el tiempo!":"Fallaste"}</h2>
       <p class="text-on-surface-variant mt-3 mb-1">La respuesta correcta era</p>
       <p class="font-display font-extrabold text-2xl" style="color:${c.color}">${q.o[q.a]}</p>
-      <p class="text-on-surface-variant text-sm mt-4">${mio?"Sin puntos en este turno. ¡A por la siguiente!":"Tu oportunidad de recortar distancia."}</p>
+      <p class="text-on-surface-variant text-sm mt-4">${muerto ? "Te quedaste sin vidas." : "Te quedan "+S.vidas+" vida"+(S.vidas===1?"":"s")+". ¡Sigue!"}</p>
+      <button onclick="${muerto?"etapaFallida()":"nextTurn()"}" class="mt-6 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">${muerto?"Ver resultado":"Continuar"}</button>
+    </div>
+  </main>`;
+}
+
+function etapaFallida(){
+  stopTimer(); FX.music.para();
+  const e = ETAPAS[S.etapa];
+  app.innerHTML = `${topBar()}
+  <main class="flex-1 px-5 py-10 pb-32 max-w-lg mx-auto w-full">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-7 text-center block-shadow-sm animate-pop">
+      <span class="material-symbols-outlined text-error msf" style="font-size:54px;">heart_broken</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">Etapa no superada</h2>
+      <p class="text-on-surface-variant mt-1">${e.n} se te resistió esta vez.</p>
+      <p class="font-display font-extrabold text-4xl text-primary mt-4">${S.scores[0]} pts</p>
+      <p class="text-on-surface-variant text-sm">${S.qDone} de ${S.qPerPlayer} preguntas respondidas</p>
+      <div class="grid gap-3 mt-6">
+        <button onclick="empezarEtapa(${S.etapa})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Reintentar</button>
+        <button onclick="go('solo')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al mapa</button>
+      </div>
+    </div>
+  </main>${bottomNav("home")}`;
+}
+
+function etapaSuperada(){
+  stopTimer(); FX.music.para();
+  FX.fanfare(); burstConfetti(90,true); setTimeout(()=>burstConfetti(60,true),700); vibrate([60,40,60,40,120]);
+  const e = ETAPAS[S.etapa];
+  const est = S.vidas === 3 ? 3 : (S.vidas === 2 ? 2 : 1);
+  const p = progresoMundo();
+  p.estrellas[S.etapa] = Math.max(p.estrellas[S.etapa] || 0, est);
+  p.mejor[S.etapa] = Math.max(p.mejor[S.etapa] || 0, S.scores[0]);
+  const ultima = S.etapa >= ETAPAS.length - 1;
+  if(!ultima) p.max = Math.max(p.max, S.etapa + 1);
+  guardarMundo(p);
+  app.innerHTML = `${topBar()}
+  <main class="flex-1 px-5 py-10 pb-32 max-w-lg mx-auto w-full">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-7 text-center block-shadow-sm animate-pop">
+      <span class="material-symbols-outlined text-cat-historia msf" style="font-size:56px;">${ultima?"trophy":"flag"}</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">${ultima?"¡Diste la vuelta al mundo!":"¡"+e.n+" conquistada!"}</h2>
+      <div class="flex items-center justify-center gap-1 mt-3">
+        ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"} ${s<est?"streak-badge":""}" style="font-size:38px;animation-delay:${s*0.15}s">star</span>`).join("")}
+      </div>
+      <p class="font-display font-extrabold text-4xl text-primary mt-4">${S.scores[0]} pts</p>
+      <p class="text-on-surface-variant text-sm">${S.vidas} vida${S.vidas===1?"":"s"} restante${S.vidas===1?"":"s"}</p>
+      <div class="grid gap-3 mt-6">
+        ${!ultima?`<button onclick="empezarEtapa(${S.etapa+1})" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">flight_takeoff</span> Siguiente destino: ${ETAPAS[S.etapa+1].n}</button>`:""}
+        <button onclick="go('solo')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al mapa</button>
+      </div>
+    </div>
+  </main>${bottomNav("home")}`;
+}
+
+/* ---------- REBOTE (modo en grupo) ---------- */
+function showRebote(qi, timeout){
+  const q = QS[qi], c = CATS[q.c];
+  const fallo = S.turn;
+  FX.bad(); shakeScreen(); vibrate([80,60,80]);
+  const otros = S.players.map((n,i)=>({n,i})).filter(o => o.i !== fallo);
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full">
+    <p class="text-center font-bold text-error">${timeout?"¡Se acabó el tiempo!":"Falló "+S.players[fallo]}</p>
+    <div class="bg-surface-container border-4 rounded-[28px] p-5 mt-4 text-center animate-pop glow" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <p class="text-xs font-bold tracking-widest uppercase" style="color:${c.color}">¡Rebote! · 8 puntos</p>
+      <p class="font-display font-bold text-lg mt-2">${q.q}</p>
+    </div>
+    <p class="text-center text-on-surface-variant mt-5 mb-3">¿Quién se anima a robar los puntos?</p>
+    <div class="grid gap-2">
+      ${otros.map(o=>`<button onclick="roba(${o.i},${qi})" class="w-full py-3.5 px-4 rounded-xl font-bold border-2 border-outline-variant bg-surface-container flex items-center justify-between active:translate-y-1 transition-all block-shadow-sm">
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:20px;">pan_tool</span> ${o.n}</span>
+        <span class="text-on-surface-variant text-sm">${S.scores[o.i]} pts</span></button>`).join("")}
+      <button onclick="nadieSabe(${qi})" class="w-full py-3 rounded-xl font-bold text-on-surface-variant border-2 border-outline-variant/60 active:translate-y-1 transition-all">Nadie lo sabe</button>
+    </div>
+  </main>`;
+}
+
+function nadieSabe(qi){
+  const q = QS[qi], c = CATS[q.c];
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
+    <div class="bg-surface-container border-4 rounded-[28px] p-8 text-center w-full animate-pop" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px;">visibility</span>
+      <p class="text-on-surface-variant mt-3 mb-1">La respuesta era</p>
+      <p class="font-display font-extrabold text-2xl" style="color:${c.color}">${q.o[q.a]}</p>
       <button onclick="nextTurn()" class="mt-6 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">Siguiente turno</button>
     </div>
   </main>`;
-  if(isBot()){ clearBot(); S.botTO = setTimeout(nextTurn, 2200); }
 }
 
-function retoOk(){
-  S.scores[S.turn]+=5;
-  FX.good(0); burstConfetti(25); flashPoints("+5","#DD9414"); vibrate(40);
-  setTimeout(nextTurn, 600);
+function roba(quien, qi){
+  const q = QS[qi], c = CATS[q.c];
+  S.ladron = quien;
+  let left = 10;
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full flex flex-col items-center">
+    <p class="font-display font-extrabold text-xl mb-1">Roba <span class="text-primary">${S.players[quien]}</span></p>
+    <p class="text-on-surface-variant text-sm mb-3">10 segundos · 8 puntos si aciertas</p>
+    <div class="relative w-20 h-20 mb-4">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96" aria-hidden="true">
+        <circle cx="48" cy="48" r="40" fill="transparent" stroke="#2B3160" stroke-width="10"></circle>
+        <circle id="robRing" cx="48" cy="48" r="40" fill="transparent" stroke="${c.color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0"></circle>
+      </svg>
+      <span id="robClk" class="absolute inset-0 flex items-center justify-center font-display font-extrabold text-3xl text-primary">10</span>
+    </div>
+    <div class="w-full bg-surface-container border-4 rounded-[28px] p-5" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <p class="font-display font-bold text-lg text-center mb-4">${q.q}</p>
+      <div class="grid gap-3">
+        ${q.o.map((o,j)=>`<button onclick="resultadoRobo(${j},${qi})" class="w-full border-2 border-outline-variant rounded-2xl py-3.5 px-4 font-bold text-left block-shadow-sm active-btn-press transition-all">${o}</button>`).join("")}
+      </div>
+    </div>
+  </main>`;
+  stopTimer();
+  S.timer = setInterval(()=>{
+    left--;
+    const k = document.getElementById("robClk"), r = document.getElementById("robRing");
+    if(k){ k.textContent = left; if(left<=3) k.classList.add("text-error"); }
+    if(r){ r.style.strokeDashoffset = 251.3*(1-left/10); if(left<=3) r.setAttribute("stroke","#FF6B6B"); }
+    if(left<=3 && left>0) FX.hurry();
+    if(left<=0){ stopTimer(); resultadoRobo(-1, qi); }
+  }, 1000);
+}
+
+function resultadoRobo(j, qi){
+  stopTimer();
+  const q = QS[qi], c = CATS[q.c];
+  const quien = S.ladron;
+  const ok = j === q.a;
+  if(ok){
+    S.scores[quien] += 8;
+    FX.good(0); burstConfetti(40); flashPoints("+8", "#37D399"); vibrate([30,50,30]);
+  } else { FX.bad(); shakeScreen(); }
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
+    <div class="bg-surface-container border-4 rounded-[28px] p-8 text-center w-full animate-pop" style="border-color:${ok?"#1E7A5F":c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <span class="material-symbols-outlined msf" style="font-size:52px;color:${ok?"#37D399":"#FF6B6B"};">${ok?"trending_up":"block"}</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">${ok?"¡Robo perfecto!":"Robo fallido"}</h2>
+      <p class="text-on-surface-variant mt-1">${ok?S.players[quien]+" se lleva 8 puntos":"Nadie se lleva los puntos"}</p>
+      ${!ok?`<p class="text-on-surface-variant mt-4 mb-1 text-sm">La respuesta era</p><p class="font-display font-extrabold text-xl" style="color:${c.color}">${q.o[q.a]}</p>`:""}
+      <button onclick="nextTurn()" class="mt-6 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">Siguiente turno</button>
+    </div>
+  </main>`;
 }
 
 function nextTurn(){
+  clearBot();
+  if(S.modo === 'mundo'){
+    S.qDone++;
+    if(S.qDone >= S.qPerPlayer) return etapaSuperada();
+    return go("deck");
+  }
   S.qDone++; S.turn=(S.turn+1)%S.players.length;
   const totalQ = S.players.length*S.qPerPlayer;
   if(S.qDone>=totalQ) return finishGame();
