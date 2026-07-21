@@ -111,7 +111,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.0";
+const APP_VER = "2.1";
 const render = {};
 
 render.home = () => {
@@ -214,13 +214,20 @@ render.settings = () => {
 };
 
 const ETAPAS = [
-  { n:"París",     pais:"Francia",   cat:"Cultura",         seg:22, num:6,  icon:"tour" },
-  { n:"Roma",      pais:"Italia",    cat:"Historia",        seg:20, num:7,  icon:"account_balance" },
-  { n:"Río",       pais:"Brasil",    cat:"Entretenimiento", seg:18, num:7,  icon:"celebration" },
-  { n:"Tokio",     pais:"Japón",     cat:"Ciencia",         seg:16, num:8,  icon:"biotech" },
-  { n:"Nairobi",   pais:"Kenia",     cat:"Deportes",        seg:15, num:8,  icon:"sports_score" },
-  { n:"La Cumbre", pais:"El mundo",  cat:null,              seg:14, num:10, icon:"public" }
+  { n:"París",     pais:"Francia",   seg:22, num:6,  icon:"tour",            color:"#17A2A2" },
+  { n:"Roma",      pais:"Italia",    seg:20, num:7,  icon:"account_balance", color:"#DD9414" },
+  { n:"Río",       pais:"Brasil",    seg:18, num:8,  icon:"celebration",     color:"#D6336C" },
+  { n:"Tokio",     pais:"Japón",     seg:16, num:8,  icon:"biotech",         color:"#1E7A5F" },
+  { n:"Nairobi",   pais:"Kenia",     seg:15, num:9,  icon:"sports_score",    color:"#D9531E" },
+  { n:"La Cumbre", pais:"El mundo",  seg:13, num:10, icon:"public",          color:"#5B3FA8" }
 ];
+
+/* Bolsa de categorías: no se repite ninguna hasta que salgan todas */
+function nuevaBolsa(){ return shuffle(Object.keys(CATS)); }
+function sacarDeBolsa(cat){
+  S.bolsa = (S.bolsa || []).filter(c => c !== cat);
+  if(S.bolsa.length === 0) S.bolsa = nuevaBolsa();
+}
 
 function progresoMundo(){
   try { return JSON.parse(localStorage.getItem("tm_mundo")) || { max:0, estrellas:{}, mejor:{} }; }
@@ -247,13 +254,13 @@ render.solo = () => {
       ${ETAPAS.map((e,i)=>{
         const abierta = i <= p.max;
         const est = p.estrellas[i] || 0;
-        const c = e.cat ? CATS[e.cat] : CATS["Sorpresa"];
+        const c = { color: e.color };
         return `<button ${abierta?`onclick="empezarEtapa(${i})"`:"disabled"} class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 transition-all ${abierta?"border-outline-variant bg-surface-container active:translate-y-1 block-shadow-sm":"border-outline-variant/40 opacity-45"}">
           <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${abierta?c.color:"#2B3160"}">
             <span class="material-symbols-outlined text-white msf" style="font-size:26px;">${abierta?e.icon:"lock"}</span></div>
           <div class="flex-1 min-w-0">
             <p class="font-display font-extrabold text-lg leading-tight">${i+1}. ${e.n}</p>
-            <p class="text-on-surface-variant text-sm">${e.pais} · ${e.cat || "Todas las categorías"} · ${e.num} preguntas</p>
+            <p class="text-on-surface-variant text-sm">${e.pais} · ${e.num} preguntas · ${e.seg}s por pregunta</p>
             ${abierta ? `<div class="flex items-center gap-0.5 mt-1">
               ${[0,1,2].map(s=>`<span class="material-symbols-outlined ${s<est?"msf text-cat-historia":"text-outline-variant"}" style="font-size:17px;">star</span>`).join("")}
               ${p.mejor[i]?`<span class="text-on-surface-variant text-xs ml-2">récord ${p.mejor[i]} pts</span>`:""}
@@ -276,8 +283,8 @@ function empezarEtapa(i){
   S.fifty = [true];
   S.turn = 0; S.qDone = 0; S.qPerPlayer = e.num;
   S.timerSecs = e.seg;
-  const pool = QS.map((_,k)=>k).filter(k => e.cat ? QS[k].c === e.cat : true);
-  S.pool = shuffle(pool);
+  S.pool = shuffle(QS.map((_,k)=>k));
+  S.bolsa = nuevaBolsa();
   S.used = new Set();
   if(FX.on && FX.music.on) FX.music.arranca();
   go("deck");
@@ -326,6 +333,7 @@ function startGame(){
     const v=el&&el.value.trim(); return v||("Jugador "+(i+1));
   });
   S.modo = 'grupo';
+  S.bolsa = nuevaBolsa();
   if(FX.on && FX.music.on) FX.music.arranca();
   S.bots = S.players.map(()=>false);
   S.scores = S.players.map(()=>0);
@@ -338,14 +346,22 @@ render.deck = () => {
   const base = S.modo === 'mundo' ? S.pool : QS.map((_,i)=>i);
   const avail = base.filter(i=>!S.used.has(i));
   if(avail.length===0) return S.modo === 'mundo' ? etapaSuperada() : finishGame();
-  let hand = [];
-  const porCat = {};
-  shuffle(avail.slice()).forEach(qi => { const c = QS[qi].c; if(!porCat[c]) porCat[c] = qi; });
-  hand = shuffle(Object.values(porCat)).slice(0,4);
+  if(!S.bolsa || S.bolsa.length === 0) S.bolsa = nuevaBolsa();
+  // categorías pendientes de la vuelta actual, priorizando las que aún no salieron
+  let cats = S.bolsa.filter(c => avail.some(qi => QS[qi].c === c)).slice(0, 4);
+  if(cats.length < 4){
+    const extra = nuevaBolsa().filter(c => !cats.includes(c) && avail.some(qi => QS[qi].c === c));
+    cats = cats.concat(extra.slice(0, 4 - cats.length));
+  }
+  let hand = cats.map(c => {
+    const delCat = avail.filter(qi => QS[qi].c === c);
+    return delCat[Math.floor(Math.random()*delCat.length)];
+  }).filter(x => x !== undefined);
   if(hand.length < 4){
     const resto = shuffle(avail.filter(qi => !hand.includes(qi)));
     hand = hand.concat(resto.slice(0, 4 - hand.length));
   }
+  hand = shuffle(hand);
   const racha = S.streak >= 2 ? `<div class="streak-badge inline-flex items-center gap-1 bg-cat-deportes text-white font-display font-extrabold px-4 py-1.5 rounded-full text-lg mb-2" style="box-shadow:0 4px 0 0 #8f3512;">
       <span class="material-symbols-outlined msf" style="font-size:20px;">local_fire_department</span> ¡Racha x${S.streak}!</div>` : "";
   app.innerHTML = `${topBar({exit:true})}
@@ -362,6 +378,7 @@ render.deck = () => {
     </div>
     <div class="bg-surface-container-low border-2 border-outline-variant rounded-xl p-4 mb-5 text-center block-shadow-sm">
       <p class="text-on-surface-variant font-bold">${S.modo === "mundo" ? "Elige tu carta y lánzala" : "¡Lanza tu carta al aire!"}</p>
+      <p class="text-on-surface-variant text-xs mt-1">Categorías por salir en esta vuelta: ${(S.bolsa||[]).length}</p>
     </div>
     <div class="grid grid-cols-2 gap-4">
       ${hand.map((qi,i)=>`<button onclick="throwCard(${qi})" class="card-perspective aspect-[3/4] relative w-full active:translate-y-1 transition-transform group deal-in" style="--tilt:${(i%2?2:-2)}deg;animation-delay:${i*0.09}s;">
@@ -387,6 +404,7 @@ render.deck = () => {
 function throwCard(qi){
   S.used.add(qi);
   const q = QS[qi], c = CATS[q.c];
+  sacarDeBolsa(q.c);
   FX.whoosh(); vibrate(20);
   app.innerHTML = `${topBar({exit:true})}
   <main class="flex-1 px-5 max-w-lg mx-auto w-full">

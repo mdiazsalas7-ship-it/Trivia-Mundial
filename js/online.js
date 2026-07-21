@@ -73,7 +73,7 @@ window.createRoom = async function(){
       jugadores: [{ id:O.me, nombre:name, pts:0, fifty:true }],
       totalQ: 10, segundos: 20,
       orden: [], turno: 0, hechas: 0, mano: [], carta: null,
-      usadas: [], respuestas: {}, oculta50: {}, deadline: 0
+      usadas: [], respuestas: {}, oculta50: {}, deadline: 0, bolsa: []
     });
     O.code = code; listen();
   } catch(e){ showErr(e); }
@@ -184,6 +184,24 @@ window.shareCode = async function(){
 
 window.setCfg = async function(k,v){ try { await updateDoc(roomRef(O.code), { [k]: v }); } catch(e){ showErr(e); } };
 
+function nuevaBolsaOnline(){ return shuffle(Object.keys(CATS)); }
+
+function manoConBolsa(pool, bolsa, excluir){
+  let b = (bolsa && bolsa.length) ? bolsa.slice() : nuevaBolsaOnline();
+  const disponibles = pool.filter(qi => !excluir.includes(qi));
+  let cats = b.filter(c => disponibles.some(qi => QS[qi].c === c)).slice(0,4);
+  if(cats.length < 4){
+    const extra = nuevaBolsaOnline().filter(c => !cats.includes(c) && disponibles.some(qi => QS[qi].c === c));
+    cats = cats.concat(extra.slice(0, 4 - cats.length));
+  }
+  let mano = cats.map(c => {
+    const delCat = disponibles.filter(qi => QS[qi].c === c);
+    return delCat[Math.floor(Math.random()*delCat.length)];
+  }).filter(x => x !== undefined);
+  if(mano.length < 4) mano = mano.concat(shuffle(disponibles.filter(qi=>!mano.includes(qi))).slice(0, 4-mano.length));
+  return { mano: shuffle(mano), bolsa: b };
+}
+
 function manoVariada(pool, excluir){
   const porCat = {};
   shuffle(pool.slice()).forEach(qi => { if(excluir.includes(qi)) return; const c = QS[qi].c; if(!porCat[c]) porCat[c] = qi; });
@@ -203,7 +221,8 @@ window.startOnline = async function(){
   try {
     await updateDoc(roomRef(O.code), {
       fase:"mazo", orden, turno:0, hechas:0, usadas:[],
-      mano: manoVariada(orden, []), carta:null,
+      ...(()=>{ const x = manoConBolsa(orden, nuevaBolsaOnline(), []); return { mano:x.mano, bolsa:x.bolsa }; })(),
+      carta:null,
       respuestas:{}, oculta50:{},
       jugadores: O.room.jugadores.map(j=>({ id:j.id, nombre:j.nombre, pts:0, fifty:true }))
     });
@@ -237,8 +256,11 @@ window.pickOnline = async function(qi){
   if(!isMyTurn() || O.sending) return;
   O.sending = true;
   try {
+    const cat = QS[qi].c;
+    let bolsa = (O.room.bolsa || []).filter(c => c !== cat);
+    if(bolsa.length === 0) bolsa = nuevaBolsaOnline();
     await updateDoc(roomRef(O.code), {
-      fase:"pregunta", carta:qi, deadline: now() + O.room.segundos*1000 + 2600, respuestas:{}
+      fase:"pregunta", carta:qi, bolsa, deadline: now() + O.room.segundos*1000 + 2600, respuestas:{}
     });
   } catch(e){ showErr(e); }
   O.sending = false;
@@ -419,7 +441,7 @@ window.nextOnline = async function(){
     await updateDoc(roomRef(O.code), {
       fase:"mazo", hechas, usadas,
       turno: (r.turno + 1) % r.jugadores.length,
-      mano: manoVariada(restantes, []),
+      mano: manoConBolsa(restantes, r.bolsa, []).mano,
       carta:null, respuestas:{}, oculta50:{},
       jugadores: r.jugadores.map(j => { const { ultimo, ...resto } = j; return resto; })
     });
