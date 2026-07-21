@@ -183,6 +183,17 @@ window.shareCode = async function(){
 
 window.setCfg = async function(k,v){ try { await updateDoc(roomRef(O.code), { [k]: v }); } catch(e){ showErr(e); } };
 
+function manoVariada(pool, excluir){
+  const porCat = {};
+  shuffle(pool.slice()).forEach(qi => { if(excluir.includes(qi)) return; const c = QS[qi].c; if(!porCat[c]) porCat[c] = qi; });
+  let mano = shuffle(Object.values(porCat)).slice(0,4);
+  if(mano.length < 4){
+    const resto = shuffle(pool.filter(qi => !mano.includes(qi) && !excluir.includes(qi)));
+    mano = mano.concat(resto.slice(0, 4 - mano.length));
+  }
+  return mano;
+}
+
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 window.startOnline = async function(){
@@ -190,7 +201,7 @@ window.startOnline = async function(){
   try {
     await updateDoc(roomRef(O.code), {
       fase:"mazo", orden, turno:0, hechas:0,
-      mano: orden.slice(0,4), carta:null, ultimo:null,
+      mano: manoVariada(orden, []), carta:null, ultimo:null,
       jugadores: O.room.jugadores.map(j=>({ ...j, pts:0, fifty:true }))
     });
   } catch(e){ showErr(e); }
@@ -411,7 +422,7 @@ window.nextOnline = async function(){
     await updateDoc(roomRef(O.code), {
       fase:"mazo", hechas,
       turno: (r.turno + 1) % r.jugadores.length,
-      mano: shuffle(pool.slice()).slice(0,4),
+      mano: manoVariada(pool, [r.carta]),
       carta: null, oculta: [], ultimo: null
     });
   } catch(e){ showErr(e); }

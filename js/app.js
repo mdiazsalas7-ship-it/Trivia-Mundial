@@ -92,12 +92,12 @@ render.home = () => {
     </div>
     <div class="z-10 w-full flex flex-col gap-4">
       <button onclick="go('solo')" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-2xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-3">
-        <span class="material-symbols-outlined msf">smart_toy</span><span>Solo vs. la máquina</span></button>
+        <span class="material-symbols-outlined msf">explore</span><span>Modo Aventura</span></button>
       <button onclick="go('setup')" class="w-full bg-cat-entret text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #8f1f47;">
         <span class="material-symbols-outlined msf">groups</span><span>En grupo aquí</span></button>
       <button onclick="go('online')" class="w-full bg-cat-cultura text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #0d6b6b;">
         <span class="material-symbols-outlined msf">travel_explore</span><span>En línea</span></button>
-      <p class="text-center text-on-surface-variant text-sm -mt-1">Solo = practica cuando quieras · En grupo = hasta 8 en un celular · En línea = cada quien con el suyo</p>
+      <p class="text-center text-on-surface-variant text-sm -mt-1">Aventura = tú contra rivales legendarios · En grupo = hasta 8 en un celular · En línea = cada quien con el suyo</p>
       <div class="grid grid-cols-3 gap-3">
         <button onclick="go('cats')" class="bg-cat-ciencia text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">category</span><span class="text-sm">Categorías</span></button>
         <button onclick="go('board')" class="bg-cat-entret text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">military_tech</span><span class="text-sm">Marcador</span></button>
@@ -162,16 +162,17 @@ render.solo = () => {
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
     <div class="text-center mb-5">
-      <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">smart_toy</span>
-      <h2 class="font-display font-bold text-2xl">Solo vs. la máquina</h2>
-      <p class="text-on-surface-variant">Practica y sube tu récord contra rivales de verdad exigentes.</p>
+      <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">explore</span>
+      <h2 class="font-display font-bold text-2xl">Modo Aventura</h2>
+      <p class="text-on-surface-variant">Enfréntate a rivales legendarios y conquista el podio.</p>
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre</p>
       <input id="soloName" placeholder="Tu nombre" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
-      <p class="font-bold mb-3">¿Cuántos rivales?</p>
+      <p class="font-bold mb-1">¿Cuántos rivales?</p>
+      <p class="text-on-surface-variant text-sm mb-3">Marco Polo, Cleopatra y Da Vinci te esperan</p>
       <div class="grid grid-cols-3 gap-3">
         ${[1,2,3].map(n=>`<button onclick="S._bots=${n};render.solo()" class="py-3 rounded-xl font-display font-extrabold text-xl border-2 transition-all active:translate-y-1 ${S._bots===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
       </div>
@@ -194,7 +195,7 @@ render.solo = () => {
   </main>`;
 };
 
-const BOT_NAMES = ["Robo-Mundi","Trivi-Bot","Doña Wiki"];
+const BOT_NAMES = ["Marco Polo","Cleopatra","Da Vinci"];
 const BOT_ACC = { facil:0.45, normal:0.68, dificil:0.88 };
 
 function startSolo(){
@@ -254,7 +255,14 @@ function startGame(){
 render.deck = () => {
   const avail = QS.map((_,i)=>i).filter(i=>!S.used.has(i));
   if(avail.length===0) return finishGame();
-  let hand = shuffle(avail.slice()).slice(0,Math.min(4,avail.length));
+  let hand = [];
+  const porCat = {};
+  shuffle(avail.slice()).forEach(qi => { const c = QS[qi].c; if(!porCat[c]) porCat[c] = qi; });
+  hand = shuffle(Object.values(porCat)).slice(0,4);
+  if(hand.length < 4){
+    const resto = shuffle(avail.filter(qi => !hand.includes(qi)));
+    hand = hand.concat(resto.slice(0, 4 - hand.length));
+  }
   const racha = S.streak >= 2 ? `<div class="streak-badge inline-flex items-center gap-1 bg-cat-deportes text-white font-display font-extrabold px-4 py-1.5 rounded-full text-lg mb-2" style="box-shadow:0 4px 0 0 #8f3512;">
       <span class="material-symbols-outlined msf" style="font-size:20px;">local_fire_department</span> ¡Racha x${S.streak}!</div>` : "";
   app.innerHTML = `${topBar({exit:true})}
@@ -325,15 +333,15 @@ function showQuestion(qi){
       <span id="timerText" class="absolute inset-0 flex items-center justify-center font-display font-extrabold text-4xl text-primary">${S.left}</span>
     </div>
     <div class="card-perspective w-full">
-      <div id="qcard" class="card-inner3d w-full min-h-[420px]">
-        <div class="absolute inset-0">${cardFace(q.c)}</div>
+      <div id="qcard" class="card-inner3d w-full">
+        <div class="absolute inset-0 z-10">${cardFace(q.c)}</div>
         <div class="card-back card-face bg-surface-container rounded-[28px] border-4 p-5 flex flex-col" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
           <div class="flex justify-center mb-4">
             <span class="text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full flex items-center gap-1" style="background:${c.color}">
               <span class="material-symbols-outlined" style="font-size:15px;">${c.icon}</span>${q.c}${c.x2?" · x2":""}</span>
           </div>
           <p class="font-display font-bold text-xl text-center mb-5">${q.q}</p>
-          <div class="grid gap-3 flex-1" id="opts">
+          <div class="grid gap-3" id="opts">
             ${q.o.map((o,j)=>`<button data-i="${j}" onclick="answer(${j},${qi})" class="w-full border-2 border-outline-variant rounded-2xl py-3.5 px-4 font-bold text-left block-shadow-sm active-btn-press transition-all hover:border-primary-container">${o}</button>`).join("")}
           </div>
           <button id="lifeline" onclick="useFifty(${qi})" class="mt-4 w-full border-2 rounded-xl py-2.5 font-bold flex items-center justify-center gap-1 transition-all ${S.fifty[S.turn]?"border-cat-ciencia text-cat-ciencia active:translate-y-1":"border-outline-variant text-outline-variant pointer-events-none"}">
@@ -351,7 +359,7 @@ function showQuestion(qi){
       if(opts){
         const p = document.createElement("p");
         p.className = "text-center font-bold text-on-surface-variant mt-3";
-        p.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:18px;">smart_toy</span> ' + S.players[S.turn] + " está pensando…";
+        p.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:18px;">explore</span> ' + S.players[S.turn] + " está pensando…";
         opts.parentNode.appendChild(p);
       }
     }, 900);
@@ -479,7 +487,7 @@ function scoreRow(p,i){
   return `<div class="flex items-center justify-between py-3 border-b-2 border-outline-variant last:border-0">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${i<3?medals[i]:"#cac4d4"}">${i+1}</div>
-      <span class="font-bold flex items-center gap-1">${esBot?'<span class="material-symbols-outlined text-on-surface-variant" style="font-size:17px;">smart_toy</span>':""}${p.n}</span>
+      <span class="font-bold flex items-center gap-1">${esBot?'<span class="material-symbols-outlined text-on-surface-variant" style="font-size:17px;">explore</span>':""}${p.n}</span>
     </div>
     <span class="font-display font-extrabold text-primary">${p.s.toLocaleString("es")} pts</span></div>`;
 }
