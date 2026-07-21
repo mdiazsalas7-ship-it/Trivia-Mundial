@@ -54,10 +54,12 @@ function floatingBg(){
 
 function cardFace(cat, extra=""){
   const c = CATS[cat];
-  if(c.img) return `<div class="card-face absolute inset-0 rounded-xl border-4 border-white overflow-hidden block-shadow-md ${extra}" style="background-image:url('${c.img}');background-size:cover;background-position:center;"></div>`;
+  if(c.img){
+    const badge = c.x2 ? `<span class="absolute top-2 right-2 bg-white/95 text-cat-sorpresa text-[11px] font-extrabold px-2 py-0.5 rounded-full shadow">x2</span>` : "";
+    return `<div class="card-face absolute inset-0 rounded-xl overflow-hidden block-shadow-md ${extra}" style="background-image:url('${c.img}');background-size:cover;background-position:center;">${badge}</div>`;
+  }
   const badge = c.x2 ? `<span class="absolute top-2 right-2 bg-white text-cat-sorpresa text-xs font-bold px-2 py-0.5 rounded-full">x2 puntos</span>` : "";
   return `<div class="card-face absolute inset-0 rounded-xl border-4 border-white flex items-center justify-center overflow-hidden block-shadow-md ${extra}" style="background:${c.color};">
-    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:${c.pattern};background-size:${c.psize};"></div>
     ${badge}
     <div class="flex flex-col items-center gap-2 z-10">
       <span class="material-symbols-outlined text-white" style="font-size:52px;">${c.icon}</span>
@@ -85,7 +87,12 @@ render.home = () => {
   app.innerHTML = `${topBar()}
   <main class="flex-1 flex flex-col items-center justify-center px-5 pb-32 relative max-w-lg mx-auto w-full">
     ${floatingBg()}
-    <div class="z-10 mt-8 mb-8"><img alt="Logo de Trivia Mundial" src="${LOGO_IMG}" class="w-56 h-56 object-contain drop-shadow-xl"/></div>
+    <div class="z-10 mt-6 mb-7 w-full">
+      <div class="relative rounded-[28px] overflow-hidden border-2 border-outline-variant block-shadow-sm" style="background:#01041D;">
+        <img alt="Logo de Trivia Mundial" src="${LOGO_IMG}" class="w-full max-w-xs mx-auto block"/>
+        <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 60px 10px rgba(0,0,0,.45);"></div>
+      </div>
+    </div>
     <div class="z-10 w-full flex flex-col gap-4">
       <button onclick="go('solo')" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-2xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-3">
         <span class="material-symbols-outlined msf">smart_toy</span><span>Solo vs. la máquina</span></button>
@@ -495,7 +502,8 @@ function finishGame(){
   <main class="flex-1 px-5 py-8 pb-32 max-w-lg mx-auto w-full">
     <div class="bg-white border-2 border-outline-variant rounded-[28px] p-6 text-center relative overflow-hidden block-shadow-sm animate-pop">
       <div class="absolute inset-x-0 top-0 h-24 pointer-events-none" aria-hidden="true">${conf}</div>
-      <span class="material-symbols-outlined text-cat-historia msf relative" style="font-size:60px;">trophy</span>
+      <img alt="" src="${LOGO_IMG}" class="w-24 h-24 object-contain mx-auto rounded-2xl relative" style="background:#01041D;"/>
+      <span class="material-symbols-outlined text-cat-historia msf relative block" style="font-size:44px;">trophy</span>
       <h2 class="font-display font-extrabold text-3xl mt-1">${tie?"¡Empate mundial!":"¡Felicidades, "+sorted[0].n+"!"}</h2>
       <p class="text-on-surface-variant mt-1 mb-5">${tie?"Comparten el podio de hoy":"Has conquistado el podio de hoy"}</p>
       <div class="text-left">${sorted.map((p,i)=>scoreRow(p,i)).join("")}</div>

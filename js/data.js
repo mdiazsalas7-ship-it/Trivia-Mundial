@@ -1,14 +1,13 @@
 /* ================= DATOS DEL JUEGO ================= */
 const LOGO_IMG = "assets/logo.webp";
-const DEPORTES_IMG = "assets/card-deportes.webp";
 
 const CATS = {
-  "Cultura":       { color:"#17A2A2", dark:"#0d6b6b", icon:"public",        pattern:"radial-gradient(#fff 2px, transparent 2px)", psize:"20px 20px" },
-  "Ciencia":       { color:"#1E7A5F", dark:"#0f5340", icon:"science",       pattern:"repeating-linear-gradient(45deg,#fff,#fff 10px,transparent 10px,transparent 20px)", psize:"auto" },
-  "Historia":      { color:"#DD9414", dark:"#8a5a08", icon:"history_edu",   pattern:"radial-gradient(circle at 50% 50%,#fff 2px,transparent 0)", psize:"15px 15px" },
-  "Entretenimiento":{ color:"#D6336C", dark:"#8f1f47", icon:"movie",        pattern:"linear-gradient(0deg,#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", psize:"25px 25px" },
-  "Deportes":      { color:"#D9531E", dark:"#8f3512", icon:"sports_soccer", img:DEPORTES_IMG },
-  "Sorpresa":      { color:"#5B3FA8", dark:"#2d1d5e", icon:"question_mark", pattern:"radial-gradient(#fff 2px, transparent 2px)", psize:"18px 18px", x2:true }
+  "Cultura":        { color:"#17A2A2", dark:"#0d6b6b", icon:"public",        img:"assets/card-cultura.webp" },
+  "Ciencia":        { color:"#1E7A5F", dark:"#0f5340", icon:"science",       img:"assets/card-ciencia.webp" },
+  "Historia":       { color:"#DD9414", dark:"#8a5a08", icon:"history_edu",   img:"assets/card-historia.webp" },
+  "Entretenimiento":{ color:"#D6336C", dark:"#8f1f47", icon:"movie",         img:"assets/card-entretenimiento.webp" },
+  "Deportes":       { color:"#D9531E", dark:"#8f3512", icon:"sports_soccer", img:"assets/card-deportes.webp" },
+  "Sorpresa":       { color:"#5B3FA8", dark:"#2d1d5e", icon:"question_mark", img:"assets/card-sorpresa.webp", x2:true }
 };
 
 const QS = [
