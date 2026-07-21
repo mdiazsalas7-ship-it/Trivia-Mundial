@@ -60,37 +60,51 @@ const FX = {
 };
 
 /* ---------- Música de fondo generada ---------- */
-/* Si existe assets/music.mp3 se usa esa pista; si no, suena la música generada */
+/* Pistas de música con licencia (bucle durante la partida) */
+FX.pistas = [
+  { id:"upbeat",    nombre:"Energía pop",     src:"assets/music/upbeat.mp3" },
+  { id:"barcelona", nombre:"Vibra Barcelona", src:"assets/music/barcelona.mp3" },
+  { id:"auto",      nombre:"Aleatoria",       src:null }
+];
+
 FX.track = {
-  el: null, listo: false, fallo: false,
-  init(){
-    if(this.el || this.fallo) return;
-    try {
-      const a = new Audio("assets/music.mp3");
-      a.loop = true; a.volume = 0.35; a.preload = "auto";
-      a.addEventListener("canplaythrough", () => { this.listo = true; }, { once:true });
-      a.addEventListener("error", () => { this.fallo = true; this.el = null; }, { once:true });
-      this.el = a;
-    } catch(e){ this.fallo = true; }
+  el: null, actual: null, fallo: false,
+  elegida(){ return localStorage.getItem("tm_track") || "auto"; },
+  elegir(id){
+    localStorage.setItem("tm_track", id);
+    if(FX.music.playing){ FX.music.para(); setTimeout(()=>FX.music.arranca(), 200); }
+  },
+  resolver(){
+    const id = this.elegida();
+    if(id === "auto"){
+      const reales = FX.pistas.filter(p => p.src);
+      return reales[Math.floor(Math.random() * reales.length)];
+    }
+    return FX.pistas.find(p => p.id === id && p.src) || FX.pistas[0];
   },
   play(){
-    this.init();
-    if(!this.el) return false;
-    const p = this.el.play();
-    if(p && p.catch) p.catch(() => {});
-    return true;
+    const pista = this.resolver();
+    if(!pista || !pista.src) return false;
+    try {
+      if(!this.el){ this.el = new Audio(); this.el.loop = true; }
+      if(this.actual !== pista.src){ this.el.src = pista.src; this.actual = pista.src; }
+      this.el.volume = 0.32;
+      const p = this.el.play();
+      if(p && p.catch) p.catch(()=>{ this.fallo = true; });
+      return true;
+    } catch(e){ this.fallo = true; return false; }
   },
   stop(){
-    if(!this.el) return;
     const a = this.el;
+    if(!a || a.paused) return;
     let v = a.volume;
     const baja = setInterval(() => {
-      v -= 0.05;
-      if(v <= 0.02){ clearInterval(baja); a.pause(); a.currentTime = 0; a.volume = 0.35; }
+      v -= 0.04;
+      if(v <= 0.02){ clearInterval(baja); a.pause(); a.currentTime = 0; a.volume = 0.32; }
       else a.volume = v;
     }, 60);
   },
-  disponible(){ this.init(); return !!this.el && !this.fallo; }
+  disponible(){ return !this.fallo; }
 };
 
 FX.music = {
