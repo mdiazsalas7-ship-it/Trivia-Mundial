@@ -1,7 +1,11 @@
 const FX = {
   on: localStorage.getItem("tm_sound") !== "off",
   ctx: null,
-  ac(){ if(!this.ctx){ try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } return this.ctx; },
+  ac(){
+    if(!this.ctx){ try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
+    if(this.ctx && this.ctx.state === "suspended") this.ctx.resume().catch(()=>{});
+    return this.ctx;
+  },
   tone(freq, dur, type="sine", vol=0.18, delay=0, slideTo=null){
     if(!this.on) return;
     const ac = this.ac(); if(!ac) return;
@@ -49,10 +53,77 @@ const FX = {
   toggle(){
     this.on = !this.on;
     localStorage.setItem("tm_sound", this.on ? "on" : "off");
-    if(this.on) this.tone(880, 0.12, "triangle", 0.15);
+    if(this.on){ this.tone(880, 0.12, "triangle", 0.15); if(this.music.on) this.music.arranca(); }
+    else this.music.para();
     return this.on;
   }
 };
+
+/* ---------- Música de fondo generada ---------- */
+FX.music = {
+  on: localStorage.getItem("tm_music") !== "off",
+  playing: false, timer: null, bus: null, paso: 0,
+  // progresión melancólica y épica: Dm - Bb - F - C
+  acordes: [[146.83,220.00,293.66],[116.54,174.61,233.08],[174.61,261.63,349.23],[130.81,196.00,261.63]],
+  arranca(){
+    if(this.playing || !this.on) return;
+    const ac = FX.ac(); if(!ac) return;
+    this.bus = ac.createGain();
+    this.bus.gain.setValueAtTime(0.0001, ac.currentTime);
+    this.bus.gain.exponentialRampToValueAtTime(0.055, ac.currentTime + 2.5);
+    const filtro = ac.createBiquadFilter();
+    filtro.type = "lowpass"; filtro.frequency.value = 900;
+    this.bus.connect(filtro); filtro.connect(ac.destination);
+    this.playing = true; this.paso = 0;
+    this.compas();
+    this.timer = setInterval(()=>this.compas(), 4000);
+  },
+  compas(){
+    const ac = FX.ac(); if(!ac || !this.bus) return;
+    const t = ac.currentTime;
+    const acorde = this.acordes[this.paso % this.acordes.length];
+    acorde.forEach((freq, i) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = i === 0 ? "sine" : "triangle";
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.5 / (i+1.2), t + 1.2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 4.2);
+      o.connect(g); g.connect(this.bus);
+      o.start(t); o.stop(t + 4.4);
+    });
+    // pulso suave que marca el tiempo
+    [0, 2].forEach(d => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(acorde[0] * 2, t + d);
+      g.gain.setValueAtTime(0.0001, t + d);
+      g.gain.exponentialRampToValueAtTime(0.18, t + d + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.9);
+      o.connect(g); g.connect(this.bus);
+      o.start(t + d); o.stop(t + d + 1);
+    });
+    this.paso++;
+  },
+  para(){
+    if(this.timer){ clearInterval(this.timer); this.timer = null; }
+    const ac = FX.ctx;
+    if(ac && this.bus){
+      try {
+        this.bus.gain.cancelScheduledValues(ac.currentTime);
+        this.bus.gain.setValueAtTime(this.bus.gain.value || 0.05, ac.currentTime);
+        this.bus.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 1.2);
+      } catch(e){}
+    }
+    this.playing = false;
+  },
+  toggle(){
+    this.on = !this.on;
+    localStorage.setItem("tm_music", this.on ? "on" : "off");
+    if(this.on) this.arranca(); else this.para();
+    return this.on;
+  }
+};
+
 window.FX = FX;
 
 function shakeScreen(){
@@ -90,3 +161,17 @@ window.flashPoints = flashPoints;
 
 function vibrate(ms){ if(navigator.vibrate) try { navigator.vibrate(ms); } catch(e){} }
 window.vibrate = vibrate;
+
+// Desbloquear el audio en el primer toque de la pantalla
+(function(){
+  const unlock = () => {
+    const ac = FX.ac();
+    if(ac && ac.state === "suspended") ac.resume().catch(()=>{});
+    document.removeEventListener("pointerdown", unlock);
+    document.removeEventListener("touchstart", unlock);
+    document.removeEventListener("keydown", unlock);
+  };
+  document.addEventListener("pointerdown", unlock, { once:false });
+  document.addEventListener("touchstart", unlock, { once:false });
+  document.addEventListener("keydown", unlock, { once:false });
+})();
