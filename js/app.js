@@ -52,11 +52,12 @@ function floatingBg(){
   </div>`;
 }
 
-function cardFace(cat, extra=""){
+function cardFace(cat, extra="", ajustar=false){
   const c = CATS[cat];
   if(c.img){
     const badge = c.x2 ? `<span class="absolute top-2 right-2 bg-white/95 text-cat-sorpresa text-[11px] font-extrabold px-2 py-0.5 rounded-full shadow">x2</span>` : "";
-    return `<div class="card-face absolute inset-0 rounded-xl overflow-hidden block-shadow-md ${extra}" style="background-image:url('${c.img}');background-size:cover;background-position:center;">${badge}</div>`;
+    const fit = ajustar ? `background-size:contain;background-repeat:no-repeat;background-color:${c.dark};` : `background-size:cover;`;
+    return `<div class="card-face absolute inset-0 rounded-xl overflow-hidden block-shadow-md ${extra}" style="background-image:url('${c.img}');${fit}background-position:center;">${badge}</div>`;
   }
   const badge = c.x2 ? `<span class="absolute top-2 right-2 bg-white text-cat-sorpresa text-xs font-bold px-2 py-0.5 rounded-full">x2 puntos</span>` : "";
   return `<div class="card-face absolute inset-0 rounded-xl border-4 border-white flex items-center justify-center overflow-hidden block-shadow-md ${extra}" style="background:${c.color};">
@@ -334,7 +335,7 @@ function showQuestion(qi){
     </div>
     <div class="card-perspective w-full">
       <div id="qcard" class="card-inner3d w-full">
-        <div class="absolute inset-0 z-10">${cardFace(q.c)}</div>
+        ${cardFace(q.c, "rounded-[28px]", true)}
         <div class="card-back card-face bg-surface-container rounded-[28px] border-4 p-5 flex flex-col" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
           <div class="flex justify-center mb-4">
             <span class="text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full flex items-center gap-1" style="background:${c.color}">

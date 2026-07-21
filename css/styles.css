@@ -11,8 +11,8 @@
 .card-perspective{perspective:1400px;}
 .card-inner3d{transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,.2,.2,1);position:relative;}
 .card-flipped{transform:rotateY(180deg);}
-.card-face{backface-visibility:hidden;}
-.card-back{transform:rotateY(180deg);position:relative;}
+.card-face{backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.card-back{transform:rotateY(180deg);position:relative;z-index:1;}
 
 @keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
 .animate-pop{animation:pop .45s ease-out both;}
