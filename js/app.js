@@ -2,7 +2,7 @@
 const S = {
   screen:"home",
   players:[], scores:[], fifty:[],
-  turn:0, qDone:0, qPerPlayer:5, streak:0, bots:[], botTO:null,
+  turn:0, qDone:0, qPerPlayer:5, streak:0, modo:'grupo', bots:[], botTO:null,
   timerSecs:20, timer:null, left:20,
   used:new Set(), lastResults:null
 };
@@ -177,7 +177,7 @@ render.solo = () => {
     <div class="text-center mb-5">
       <span class="material-symbols-outlined text-primary msf" style="font-size:44px;">explore</span>
       <h2 class="font-display font-bold text-2xl">Modo Aventura</h2>
-      <p class="text-on-surface-variant">Enfréntate a rivales legendarios y conquista el podio.</p>
+      <p class="text-on-surface-variant">Enfréntate a rivales legendarios: solo preguntas, sin retos. Encadena aciertos y conquista el podio.</p>
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre</p>
@@ -216,6 +216,7 @@ function startSolo(){
   const yo = (el && el.value.trim()) || "Tú";
   localStorage.setItem("tm_name", yo);
   S.players = [yo, ...BOT_NAMES.slice(0, S._bots)];
+  S.modo = 'aventura';
   S.bots = [false, ...Array(S._bots).fill(true)];
   S.scores = S.players.map(()=>0);
   S.fifty = S.players.map(()=>true);
@@ -258,6 +259,7 @@ function startGame(){
     const el=document.getElementById("pname"+i);
     const v=el&&el.value.trim(); return v||("Jugador "+(i+1));
   });
+  S.modo = 'grupo';
   S.bots = S.players.map(()=>false);
   S.scores = S.players.map(()=>0);
   S.fifty  = S.players.map(()=>true);
@@ -287,7 +289,7 @@ render.deck = () => {
       <p class="text-on-surface-variant text-sm mt-1">Pregunta ${Math.floor(S.qDone/S.players.length)+1} de ${S.qPerPlayer}</p>
     </div>
     <div class="bg-surface-container-low border-2 border-outline-variant rounded-xl p-4 mb-5 text-center block-shadow-sm">
-      <p class="text-on-surface-variant font-bold">¡Lanza tu carta al aire!</p>
+      <p class="text-on-surface-variant font-bold">${S.modo === "aventura" ? "Elige tu categoría y lánzala" : "¡Lanza tu carta al aire!"}</p>
     </div>
     <div class="grid grid-cols-2 gap-4">
       ${hand.map((qi,i)=>`<button onclick="throwCard(${qi})" class="card-perspective aspect-[3/4] relative w-full active:translate-y-1 transition-transform group deal-in" style="--tilt:${(i%2?2:-2)}deg;animation-delay:${i*0.09}s;">
@@ -454,6 +456,7 @@ function answer(j,qi){
 function showReto(qi,timeout){
   const q=QS[qi];
   S.streak = 0;
+  if(S.modo === 'aventura') return showFallo(qi, timeout);
   const r=RETOS[Math.floor(Math.random()*RETOS.length)];
   if(timeout){ FX.bad(); shakeScreen(); vibrate(120); }
   setTimeout(()=>FX.drum(), 250);
@@ -479,6 +482,24 @@ function showReto(qi,timeout){
     clearBot();
     S.botTO = setTimeout(()=>{ Math.random() < 0.5 ? retoOk() : nextTurn(); }, 2600);
   }
+}
+
+function showFallo(qi, timeout){
+  const q = QS[qi], c = CATS[q.c];
+  const mio = !isBot();
+  if(timeout && mio){ FX.bad(); shakeScreen(); vibrate(120); }
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
+    <div class="bg-surface-container border-4 rounded-[28px] p-8 text-center w-full animate-pop" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <span class="material-symbols-outlined text-error msf" style="font-size:52px;">cancel</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">${timeout?"¡Se acabó el tiempo!":(mio?"Fallaste":S.players[S.turn]+" falló")}</h2>
+      <p class="text-on-surface-variant mt-3 mb-1">La respuesta correcta era</p>
+      <p class="font-display font-extrabold text-2xl" style="color:${c.color}">${q.o[q.a]}</p>
+      <p class="text-on-surface-variant text-sm mt-4">${mio?"Sin puntos en este turno. ¡A por la siguiente!":"Tu oportunidad de recortar distancia."}</p>
+      <button onclick="nextTurn()" class="mt-6 w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all">Siguiente turno</button>
+    </div>
+  </main>`;
+  if(isBot()){ clearBot(); S.botTO = setTimeout(nextTurn, 2200); }
 }
 
 function retoOk(){
