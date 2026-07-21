@@ -60,66 +60,114 @@ const FX = {
 };
 
 /* ---------- Música de fondo generada ---------- */
+/* Si existe assets/music.mp3 se usa esa pista; si no, suena la música generada */
+FX.track = {
+  el: null, listo: false, fallo: false,
+  init(){
+    if(this.el || this.fallo) return;
+    try {
+      const a = new Audio("assets/music.mp3");
+      a.loop = true; a.volume = 0.35; a.preload = "auto";
+      a.addEventListener("canplaythrough", () => { this.listo = true; }, { once:true });
+      a.addEventListener("error", () => { this.fallo = true; this.el = null; }, { once:true });
+      this.el = a;
+    } catch(e){ this.fallo = true; }
+  },
+  play(){
+    this.init();
+    if(!this.el) return false;
+    const p = this.el.play();
+    if(p && p.catch) p.catch(() => {});
+    return true;
+  },
+  stop(){
+    if(!this.el) return;
+    const a = this.el;
+    let v = a.volume;
+    const baja = setInterval(() => {
+      v -= 0.05;
+      if(v <= 0.02){ clearInterval(baja); a.pause(); a.currentTime = 0; a.volume = 0.35; }
+      else a.volume = v;
+    }, 60);
+  },
+  disponible(){ this.init(); return !!this.el && !this.fallo; }
+};
+
 FX.music = {
   on: localStorage.getItem("tm_music") !== "off",
   playing: false, timer: null, bus: null, paso: 0,
-  // progresión melancólica y épica: Dm - Bb - F - C
-  acordes: [[146.83,220.00,293.66],[116.54,174.61,233.08],[174.61,261.63,349.23],[130.81,196.00,261.63]],
+  // Dm - Bb - F - C, en registro medio-agudo para que se oiga en altavoces de celular
+  acordes: [
+    { pad:[293.66, 440.00, 587.33], arp:[587.33, 698.46, 880.00, 698.46] },
+    { pad:[233.08, 349.23, 466.16], arp:[466.16, 587.33, 698.46, 587.33] },
+    { pad:[349.23, 523.25, 698.46], arp:[698.46, 880.00, 1046.50, 880.00] },
+    { pad:[261.63, 392.00, 523.25], arp:[523.25, 659.25, 784.00, 659.25] }
+  ],
   arranca(){
-    if(this.playing || !this.on) return;
+    if(this.playing || !this.on || !FX.on) return;
+    if(FX.track.disponible()){ this.playing = true; FX.track.play(); return; }
     const ac = FX.ac(); if(!ac) return;
     this.bus = ac.createGain();
     this.bus.gain.setValueAtTime(0.0001, ac.currentTime);
-    this.bus.gain.exponentialRampToValueAtTime(0.055, ac.currentTime + 2.5);
+    this.bus.gain.exponentialRampToValueAtTime(0.13, ac.currentTime + 2);
     const filtro = ac.createBiquadFilter();
-    filtro.type = "lowpass"; filtro.frequency.value = 900;
+    filtro.type = "lowpass"; filtro.frequency.value = 2600; filtro.Q.value = 0.7;
     this.bus.connect(filtro); filtro.connect(ac.destination);
     this.playing = true; this.paso = 0;
     this.compas();
     this.timer = setInterval(()=>this.compas(), 4000);
   },
   compas(){
-    const ac = FX.ac(); if(!ac || !this.bus) return;
+    const ac = FX.ac(); if(!ac || !this.bus || !this.playing) return;
     const t = ac.currentTime;
-    const acorde = this.acordes[this.paso % this.acordes.length];
-    acorde.forEach((freq, i) => {
+    const { pad, arp } = this.acordes[this.paso % this.acordes.length];
+
+    // colchón de acordes
+    pad.forEach((freq, i) => {
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = i === 0 ? "sine" : "triangle";
+      o.type = "triangle";
       o.frequency.setValueAtTime(freq, t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.5 / (i+1.2), t + 1.2);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 4.2);
+      g.gain.exponentialRampToValueAtTime(0.34 / (i*0.5 + 1), t + 0.9);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 4.1);
       o.connect(g); g.connect(this.bus);
-      o.start(t); o.stop(t + 4.4);
+      o.start(t); o.stop(t + 4.3);
     });
-    // pulso suave que marca el tiempo
-    [0, 2].forEach(d => {
+
+    // arpegio: la melodía que realmente se escucha
+    arp.forEach((freq, i) => {
+      const d = i * 1;
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = "sine"; o.frequency.setValueAtTime(acorde[0] * 2, t + d);
+      o.type = "sine";
+      o.frequency.setValueAtTime(freq, t + d);
       g.gain.setValueAtTime(0.0001, t + d);
-      g.gain.exponentialRampToValueAtTime(0.18, t + d + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.9);
+      g.gain.exponentialRampToValueAtTime(0.5, t + d + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.85);
       o.connect(g); g.connect(this.bus);
-      o.start(t + d); o.stop(t + d + 1);
+      o.start(t + d); o.stop(t + d + 0.9);
     });
+
     this.paso++;
   },
   para(){
+    FX.track.stop();
     if(this.timer){ clearInterval(this.timer); this.timer = null; }
     const ac = FX.ctx;
     if(ac && this.bus){
       try {
-        this.bus.gain.cancelScheduledValues(ac.currentTime);
-        this.bus.gain.setValueAtTime(this.bus.gain.value || 0.05, ac.currentTime);
-        this.bus.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 1.2);
+        const g = this.bus.gain;
+        g.cancelScheduledValues(ac.currentTime);
+        g.setValueAtTime(Math.max(g.value, 0.0001), ac.currentTime);
+        g.exponentialRampToValueAtTime(0.0001, ac.currentTime + 1);
       } catch(e){}
     }
+    this.bus = null;
     this.playing = false;
   },
   toggle(){
     this.on = !this.on;
     localStorage.setItem("tm_music", this.on ? "on" : "off");
-    if(this.on) this.arranca(); else this.para();
+    if(this.on){ this.para(); this.arranca(); } else this.para();
     return this.on;
   }
 };

@@ -1,4 +1,4 @@
-const VERSION = "tm-v5";
+const VERSION = "tm-v7";
 const SHELL = [
   "./",
   "./index.html",

@@ -122,3 +122,16 @@ Archivos implicados: `manifest.webmanifest`, `sw.js`, `js/install.js`, `favicon.
 **Importante:** la instalación solo funciona sobre HTTPS (Vercel lo da automáticamente) o en `localhost`. Abriendo el archivo directamente desde el disco no aparecerá el botón.
 
 Al publicar una versión nueva, sube el número de `VERSION` en `sw.js` (por ejemplo `tm-v4`) para que los dispositivos actualicen la caché.
+
+
+## Cambiar la música de fondo
+
+El juego trae una música generada por código como respaldo. Para usar una pista real:
+
+1. Consigue una pista **libre de regalías con licencia comercial** (Uppbeat, Epidemic Sound, Artlist, Pixabay Music, Biblioteca de Audio de YouTube) o encárgala a un compositor. **No uses canciones comerciales de artistas conocidos**: requieren licencias de sincronización y máster que cuestan miles de dólares, y las tiendas retiran la app ante un reclamo.
+2. Busca una pista pensada para bucle, de 1 a 3 minutos, sin voces (las voces distraen durante las preguntas).
+3. Guárdala como `assets/music.mp3` (idealmente menos de 2 MB; conviértela a 128 kbps mono si hace falta).
+4. Súbela al repo y listo: la app la detecta sola y deja de usar la música generada.
+5. Añade `./assets/music.mp3` a la lista `SHELL` de `sw.js` si quieres que también funcione sin conexión.
+
+Guarda la factura o el certificado de licencia de la pista: las tiendas de apps pueden pedirlo.

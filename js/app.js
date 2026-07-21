@@ -72,6 +72,14 @@ function cardFace(cat, extra="", ajustar=false){
 function isBot(){ return !!(S.bots && S.bots[S.turn]); }
 function clearBot(){ if(S.botTO){ clearTimeout(S.botTO); S.botTO=null; } }
 
+function probarMusica(btn){
+  if(!FX.on) FX.toggle();
+  if(!FX.music.on) FX.music.on = true;
+  FX.music.para(); FX.music.arranca();
+  if(btn){ btn.innerHTML = '<span class="material-symbols-outlined">graphic_eq</span> Sonando…'; }
+  setTimeout(()=>{ FX.music.para(); render.settings(); }, 9000);
+}
+
 function switchSonido(){ FX.toggle(); render.settings(); }
 function switchMusica(){
   const on = FX.music.toggle();
@@ -95,7 +103,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "1.4";
+const APP_VER = "1.6";
 const render = {};
 
 render.home = () => {
@@ -176,6 +184,8 @@ render.settings = () => {
         <button onclick="switchMusica()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${FX.music.on?"bg-cat-cultura text-white border-cat-cultura":"border-outline-variant text-on-surface-variant"}">
           <span class="flex items-center gap-2"><span class="material-symbols-outlined">${FX.music.on?"music_note":"music_off"}</span> Música de fondo</span>
           <span class="text-sm">${FX.music.on?"Activada":"Apagada"}</span></button>
+        <button onclick="probarMusica(this)" class="w-full py-3 px-4 rounded-xl font-bold border-2 border-outline-variant text-on-surface-variant flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+          <span class="material-symbols-outlined">play_circle</span> Escuchar una muestra</button>
       </div>
       <p class="text-on-surface-variant text-sm mt-3">La música suena durante las partidas, muy suave para no tapar las conversaciones.</p>
     </div>
