@@ -72,6 +72,13 @@ function cardFace(cat, extra="", ajustar=false){
 function isBot(){ return !!(S.bots && S.bots[S.turn]); }
 function clearBot(){ if(S.botTO){ clearTimeout(S.botTO); S.botTO=null; } }
 
+function switchSonido(){ FX.toggle(); render.settings(); }
+function switchMusica(){
+  const on = FX.music.toggle();
+  if(on && !FX.on){ FX.toggle(); }
+  render.settings();
+}
+
 function pedirInstalacion(){
   if(typeof instalarApp === "function" && window.deferredPromptReady){ instalarApp(); return; }
   if(typeof mostrarBannerManual === "function"){ mostrarBannerManual(); return; }
@@ -85,7 +92,7 @@ function toggleSound(btn){
 
 function go(screen){ stopTimer(); clearBot(); S.screen=screen; render[screen](); window.scrollTo(0,0); }
 function confirmExit(){
-  if(confirm("¿Salir de la partida? Se perderá el progreso.")){ go("home"); }
+  if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
 const render = {};
@@ -160,6 +167,18 @@ render.settings = () => {
       <p class="text-on-surface-variant text-sm mt-3">Menos tiempo, más adrenalina. El bonus de rapidez se ajusta solo.</p>
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
+      <p class="font-bold mb-3">Audio</p>
+      <div class="grid gap-3">
+        <button onclick="switchSonido()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${FX.on?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined">${FX.on?"volume_up":"volume_off"}</span> Efectos de sonido</span>
+          <span class="text-sm">${FX.on?"Activados":"Silenciados"}</span></button>
+        <button onclick="switchMusica()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${FX.music.on?"bg-cat-cultura text-white border-cat-cultura":"border-outline-variant text-on-surface-variant"}">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined">${FX.music.on?"music_note":"music_off"}</span> Música de fondo</span>
+          <span class="text-sm">${FX.music.on?"Activada":"Apagada"}</span></button>
+      </div>
+      <p class="text-on-surface-variant text-sm mt-3">La música suena durante las partidas, muy suave para no tapar las conversaciones.</p>
+    </div>
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
       <p class="font-bold mb-1">Instalar en este dispositivo</p>
       <p class="text-on-surface-variant text-sm mb-3">Se abre a pantalla completa y funciona sin internet (excepto el modo en línea).</p>
       <button onclick="pedirInstalacion()" class="w-full bg-primary-container text-white py-3.5 rounded-xl font-bold active-btn-press transition-all flex items-center justify-center gap-2" style="box-shadow:0 4px 0 0 #21005e;">
@@ -217,6 +236,7 @@ function startSolo(){
   localStorage.setItem("tm_name", yo);
   S.players = [yo, ...BOT_NAMES.slice(0, S._bots)];
   S.modo = 'aventura';
+  if(FX.on && FX.music.on) FX.music.arranca();
   S.bots = [false, ...Array(S._bots).fill(true)];
   S.scores = S.players.map(()=>0);
   S.fifty = S.players.map(()=>true);
@@ -260,6 +280,7 @@ function startGame(){
     const v=el&&el.value.trim(); return v||("Jugador "+(i+1));
   });
   S.modo = 'grupo';
+  if(FX.on && FX.music.on) FX.music.arranca();
   S.bots = S.players.map(()=>false);
   S.scores = S.players.map(()=>0);
   S.fifty  = S.players.map(()=>true);
@@ -528,6 +549,7 @@ function scoreRow(p,i){
 
 function finishGame(){
   stopTimer();
+  FX.music.para();
   FX.fanfare(); vibrate([60,40,60,40,120]);
   burstConfetti(90, true);
   setTimeout(()=>burstConfetti(60, true), 700);

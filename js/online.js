@@ -197,6 +197,7 @@ function manoVariada(pool, excluir){
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 window.startOnline = async function(){
+  if(FX.on && FX.music.on) FX.music.arranca();
   const orden = shuffle(QS.map((_,i)=>i));
   try {
     await updateDoc(roomRef(O.code), {
@@ -431,6 +432,7 @@ window.nextOnline = async function(){
 /* ---------- FIN ---------- */
 function paintEnd(){
   const r = O.room;
+  FX.music.para();
   if(O.lastFx !== "fin"){ O.lastFx = "fin"; FX.fanfare(); burstConfetti(90, true); setTimeout(()=>burstConfetti(60,true),700); vibrate([60,40,60,40,120]); }
   const s = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   const tie = s.length>1 && s[0].pts===s[1].pts;
