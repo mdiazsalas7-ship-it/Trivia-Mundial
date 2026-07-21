@@ -40,13 +40,13 @@ window.renderOnlineMenu = function(){
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
     <h2 class="font-display font-bold text-2xl mb-1">Jugar en línea</h2>
     <p class="text-on-surface-variant mb-6">Cada quien desde su celular, estén juntos o a miles de kilómetros.</p>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre</p>
       <input id="onName" placeholder="Ej. Abuela Rosa" maxlength="18" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
     </div>
     <button onclick="createRoom()" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2 mb-4">
       <span class="material-symbols-outlined">add_circle</span> Crear sala</button>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
       <p class="font-bold mb-3">¿Tienes un código?</p>
       <input id="onCode" placeholder="ABCD" maxlength="4" oninput="this.value=this.value.toUpperCase()" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 text-center font-display font-extrabold text-3xl tracking-[0.4em] focus:border-primary-container focus:ring-0"/>
       <button onclick="joinRoom()" class="mt-3 w-full bg-cat-ciencia text-white py-3.5 rounded-xl font-bold text-lg active-btn-press transition-all" style="box-shadow:0 6px 0 0 #0f5340;">Unirme a la sala</button>
@@ -143,10 +143,10 @@ function paintLobby(){
     <div class="bg-primary-container text-white rounded-2xl p-6 text-center mb-5" style="box-shadow:0 6px 0 0 #21005e;">
       <p class="text-white/80 font-bold text-sm uppercase tracking-widest">Código de la sala</p>
       <p class="font-display font-extrabold text-6xl tracking-[0.2em] my-2">${O.code}</p>
-      <button onclick="shareCode()" class="mt-1 bg-white/20 px-4 py-2 rounded-xl font-bold inline-flex items-center gap-1 active:scale-95 transition-transform">
+      <button onclick="shareCode()" class="mt-1 bg-white/25 px-4 py-2 rounded-xl font-bold inline-flex items-center gap-1 active:scale-95 transition-transform">
         <span class="material-symbols-outlined" style="font-size:18px;">share</span> Compartir</button>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
       <p class="font-bold mb-3">En la sala (${r.jugadores.length})</p>
       ${r.jugadores.map((j,i)=>`<div class="flex items-center gap-3 py-2 border-b-2 border-outline-variant last:border-0">
         <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${Object.values(CATS)[i%6].color}">${j.nombre.charAt(0).toUpperCase()}</div>
@@ -155,7 +155,7 @@ function paintLobby(){
       </div>`).join("")}
       ${r.jugadores.length<2?'<p class="text-on-surface-variant text-sm mt-3">Esperando a que se una alguien más…</p>':""}
     </div>
-    ${O.isHost ? `<div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
+    ${O.isHost ? `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
       <p class="font-bold mb-3">Preguntas por jugador</p>
       <div class="flex gap-3">${[3,5,8].map(n=>`<button onclick="setCfg('qPorJugador',${n})" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${r.qPorJugador===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}</div>
       <p class="font-bold mt-4 mb-3">Segundos por pregunta</p>
@@ -265,7 +265,7 @@ function paintQuestion(){
       <span id="oClk" class="absolute inset-0 flex items-center justify-center font-display font-extrabold text-4xl text-primary">${left}</span>
     </div>
     <p class="font-bold mb-3">${mine ? "Responde tú" : "Responde "+turnName()}</p>
-    <div class="w-full bg-white rounded-[28px] border-4 p-5" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(202,196,212,1);">
+    <div class="w-full bg-surface-container rounded-[28px] border-4 p-5" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
       <div class="flex justify-center mb-4">
         <span class="text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full flex items-center gap-1" style="background:${c.color}">
           <span class="material-symbols-outlined" style="font-size:15px;">${c.icon}</span>${q.c}${c.x2?" · x2":""}</span></div>
@@ -348,7 +348,7 @@ function paintResult(){
   app.innerHTML = `${topBar({exit:false})}
   <main class="flex-1 px-5 py-6 max-w-lg mx-auto w-full">
     ${scoreStrip()}
-    <div class="bg-white border-4 border-success rounded-[28px] p-8 text-center mt-5 animate-pop" style="box-shadow:0 8px 0 0 #0f5340;">
+    <div class="bg-surface-container border-4 border-success rounded-[28px] p-8 text-center mt-5 animate-pop" style="box-shadow:0 8px 0 0 #0f5340;">
       <span class="material-symbols-outlined text-success msf" style="font-size:56px;">check_circle</span>
       <h2 class="font-display font-extrabold text-3xl mt-2">¡Correcto${mine?"":", "+u.quien}!</h2>
       <p class="font-display font-extrabold text-4xl text-success mt-1">+${u.pts} pts</p>
@@ -377,7 +377,7 @@ function paintReto(){
     <p class="text-on-surface-variant text-sm mt-5 mb-3 text-center">${mine ? "Cumple el reto por videollamada. El grupo decide." : "¿"+u.quien+" lo cumplió? Vota:"}</p>
     <div class="w-full grid gap-3">
       <button onclick="votarReto(true)" class="w-full bg-success text-white py-4 rounded-2xl font-bold text-lg active-btn-press transition-all" style="box-shadow:0 6px 0 0 #0f5340;">Lo cumplió (+5)</button>
-      <button onclick="votarReto(false)" class="w-full bg-white border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
+      <button onclick="votarReto(false)" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
     </div>
   </main>`;
 }
@@ -426,7 +426,7 @@ function paintEnd(){
   const medals = ["#DD9414","#9ca3af","#b45309"];
   app.innerHTML = `${topBar()}
   <main class="flex-1 px-5 py-8 max-w-lg mx-auto w-full">
-    <div class="bg-white border-2 border-outline-variant rounded-[28px] p-6 text-center block-shadow-sm animate-pop">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-6 text-center block-shadow-sm animate-pop">
       <span class="material-symbols-outlined text-cat-historia msf" style="font-size:60px;">trophy</span>
       <h2 class="font-display font-extrabold text-3xl mt-1">${tie?"¡Empate mundial!":"¡Ganó "+s[0].nombre+"!"}</h2>
       <p class="text-on-surface-variant mt-1 mb-5">Sala ${O.code}</p>
@@ -439,7 +439,7 @@ function paintEnd(){
       </div>
       <div class="grid gap-3 mt-6">
         ${O.isHost?`<button onclick="startOnline()" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Revancha</button>`:""}
-        <button onclick="leaveRoom()" class="w-full bg-white border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Salir de la sala</button>
+        <button onclick="leaveRoom()" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Salir de la sala</button>
       </div>
     </div>
   </main>`;

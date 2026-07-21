@@ -19,7 +19,7 @@ function topBar(opts={}){
   const right = opts.exit
     ? `<div class="flex items-center">${snd}<button onclick="confirmExit()" class="text-on-surface-variant p-2 rounded-xl active:translate-y-1 transition-all" aria-label="Salir de la partida"><span class="material-symbols-outlined">close</span></button></div>`
     : snd;
-  return `<header class="bg-surface w-full sticky top-0 z-40 border-b-2 border-outline-variant shadow-[0_4px_0_0_rgba(0,0,0,0.06)]">
+  return `<header class="bg-surface-container-low w-full sticky top-0 z-40 border-b-2 border-outline-variant shadow-[0_4px_0_0_rgba(0,0,0,0.4)]">
     <div class="flex justify-between items-center px-5 h-16 max-w-lg mx-auto w-full">
       ${left}
       <h1 class="font-display font-extrabold text-2xl text-primary tracking-tight">Trivia Mundial</h1>
@@ -34,7 +34,7 @@ function bottomNav(active){
     {id:"board",icon:"military_tech",label:"Marcador"},
     {id:"settings",icon:"settings",label:"Ajustes"}
   ];
-  return `<nav class="fixed bottom-0 left-0 w-full bg-surface z-50 rounded-t-xl border-t-2 border-outline-variant shadow-[0_-4px_0_0_rgba(0,0,0,0.05)] pb-4 pt-2">
+  return `<nav class="fixed bottom-0 left-0 w-full bg-surface-container-low z-50 rounded-t-xl border-t-2 border-outline-variant shadow-[0_-4px_0_0_rgba(0,0,0,0.4)] pb-4 pt-2">
     <div class="flex justify-around items-center px-2 max-w-lg mx-auto">
     ${items.map(it => it.id===active
       ? `<button onclick="go('${it.id}')" class="flex flex-col items-center bg-primary-container text-white rounded-xl px-4 py-1 -translate-y-1 border-b-4 border-primary-fixed-dim active:scale-95 transition-transform"><span class="material-symbols-outlined msf">${it.icon}</span><span class="text-sm font-bold">${it.label}</span></button>`
@@ -45,10 +45,10 @@ function bottomNav(active){
 
 function floatingBg(){
   return `<div class="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-    <div class="floating-card absolute top-10 left-[5%] w-20 h-24 bg-primary-fixed rounded-xl border-2 border-primary-fixed-dim opacity-40" style="--rot:-12deg;"></div>
-    <div class="floating-card absolute top-1/4 right-[8%] w-16 h-20 rounded-xl border-2 opacity-40" style="--rot:15deg;background:#c9f0ec;border-color:#17A2A2;animation-delay:-2s;"></div>
-    <div class="floating-card absolute bottom-1/4 left-[12%] w-24 h-28 rounded-xl border-2 opacity-40" style="--rot:5deg;background:#fbd8e5;border-color:#D6336C;animation-delay:-4s;"></div>
-    <div class="floating-card absolute top-2/3 right-[5%] w-20 h-24 rounded-xl border-2 opacity-40" style="--rot:-20deg;background:#fce4d6;border-color:#D9531E;animation-delay:-1s;"></div>
+    <div class="floating-card absolute top-10 left-[5%] w-20 h-24 bg-primary-fixed rounded-xl border-2 border-primary-fixed-dim opacity-25" style="--rot:-12deg;"></div>
+    <div class="floating-card absolute top-1/4 right-[8%] w-16 h-20 rounded-xl border-2 opacity-25" style="--rot:15deg;background:#c9f0ec;border-color:#17A2A2;animation-delay:-2s;"></div>
+    <div class="floating-card absolute bottom-1/4 left-[12%] w-24 h-28 rounded-xl border-2 opacity-25" style="--rot:5deg;background:#fbd8e5;border-color:#D6336C;animation-delay:-4s;"></div>
+    <div class="floating-card absolute top-2/3 right-[5%] w-20 h-24 rounded-xl border-2 opacity-25" style="--rot:-20deg;background:#fce4d6;border-color:#D9531E;animation-delay:-1s;"></div>
   </div>`;
 }
 
@@ -87,11 +87,8 @@ render.home = () => {
   app.innerHTML = `${topBar()}
   <main class="flex-1 flex flex-col items-center justify-center px-5 pb-32 relative max-w-lg mx-auto w-full">
     ${floatingBg()}
-    <div class="z-10 mt-6 mb-7 w-full">
-      <div class="relative rounded-[28px] overflow-hidden border-2 border-outline-variant block-shadow-sm" style="background:#01041D;">
-        <img alt="Logo de Trivia Mundial" src="${LOGO_IMG}" class="w-full max-w-xs mx-auto block"/>
-        <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 60px 10px rgba(0,0,0,.45);"></div>
-      </div>
+    <div class="z-10 mt-4 mb-6 w-full flex justify-center">
+      <img alt="Logo de Trivia Mundial" src="${LOGO_IMG}" class="w-64 max-w-full rounded-[28px]" style="filter:drop-shadow(0 12px 30px rgba(91,63,168,.5));"/>
     </div>
     <div class="z-10 w-full flex flex-col gap-4">
       <button onclick="go('solo')" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-2xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-3">
@@ -131,7 +128,7 @@ render.board = () => {
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
     <h2 class="font-display font-bold text-2xl mb-5">Marcador</h2>
-    ${ r ? `<div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
+    ${ r ? `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
         <p class="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-3">Última partida</p>
         ${r.map((p,i)=>scoreRow(p,i)).join("")}
       </div>`
@@ -148,7 +145,7 @@ render.settings = () => {
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
     <h2 class="font-display font-bold text-2xl mb-5">Ajustes</h2>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm">
       <p class="font-bold mb-2">Tiempo por pregunta</p>
       <div class="flex gap-3">
         ${[15,20,30].map(t=>`<button onclick="S.timerSecs=${t};render.settings()" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${S.timerSecs===t?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${t} s</button>`).join("")}
@@ -169,24 +166,24 @@ render.solo = () => {
       <h2 class="font-display font-bold text-2xl">Solo vs. la máquina</h2>
       <p class="text-on-surface-variant">Practica y sube tu récord contra rivales de verdad exigentes.</p>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre</p>
       <input id="soloName" placeholder="Tu nombre" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">¿Cuántos rivales?</p>
       <div class="grid grid-cols-3 gap-3">
         ${[1,2,3].map(n=>`<button onclick="S._bots=${n};render.solo()" class="py-3 rounded-xl font-display font-extrabold text-xl border-2 transition-all active:translate-y-1 ${S._bots===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
       </div>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Dificultad</p>
       <div class="grid gap-3">
         ${Object.entries(difs).map(([k,v])=>`<button onclick="S._dif='${k}';render.solo()" class="w-full py-3 px-4 rounded-xl font-bold border-2 text-left flex items-center justify-between transition-all active:translate-y-1 ${S._dif===k?"text-white border-transparent":"border-outline-variant text-on-surface-variant"}" style="${S._dif===k?`background:${v.c};`:""}">
           <span>${v.n}</span><span class="text-sm font-normal ${S._dif===k?"text-white/80":"text-on-surface-variant"}">${v.d}</span></button>`).join("")}
       </div>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-6">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-6">
       <p class="font-bold mb-3">Preguntas por jugador</p>
       <div class="flex gap-3">
         ${[3,5,8,10].map(n=>`<button onclick="S.qPerPlayer=${n};render.solo()" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${S.qPerPlayer===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
@@ -218,7 +215,7 @@ render.setup = () => {
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
     <h2 class="font-display font-bold text-2xl mb-5">Configuración de partida</h2>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
       <p class="font-bold mb-3">¿Cuántos juegan? (2 a 8)</p>
       <div class="grid grid-cols-4 gap-2 mb-1">
         ${[2,3,4,5,6,7,8].map(n=>`<button onclick="S._np=${n};render.setup()" class="py-3 rounded-xl font-display font-extrabold text-xl border-2 transition-all active:translate-y-1 ${S._np===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
@@ -230,7 +227,7 @@ render.setup = () => {
         </div>`).join("")}
       </div>
     </div>
-    <div class="bg-white border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-6">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-6">
       <p class="font-bold mb-3">Preguntas por jugador</p>
       <div class="flex gap-3">
         ${[3,5,8,10].map(n=>`<button onclick="S.qPerPlayer=${n};render.setup()" class="flex-1 py-3 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${S.qPerPlayer===n?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">${n}</button>`).join("")}
@@ -330,7 +327,7 @@ function showQuestion(qi){
     <div class="card-perspective w-full">
       <div id="qcard" class="card-inner3d w-full min-h-[420px]">
         <div class="absolute inset-0">${cardFace(q.c)}</div>
-        <div class="card-back card-face bg-white rounded-[28px] border-4 p-5 flex flex-col" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(202,196,212,1);">
+        <div class="card-back card-face bg-surface-container rounded-[28px] border-4 p-5 flex flex-col" style="border-color:${c.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
           <div class="flex justify-center mb-4">
             <span class="text-white text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full flex items-center gap-1" style="background:${c.color}">
               <span class="material-symbols-outlined" style="font-size:15px;">${c.icon}</span>${q.c}${c.x2?" · x2":""}</span>
@@ -413,7 +410,7 @@ function answer(j,qi){
     setTimeout(()=>{
       app.innerHTML = `${topBar({exit:true})}
       <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full flex flex-col items-center justify-center">
-        <div class="bg-white border-4 border-success rounded-[28px] p-8 text-center w-full animate-pop" style="box-shadow:0 8px 0 0 #0f5340;">
+        <div class="bg-surface-container border-4 border-success rounded-[28px] p-8 text-center w-full animate-pop" style="box-shadow:0 8px 0 0 #0f5340;">
           <span class="material-symbols-outlined text-success msf" style="font-size:56px;">check_circle</span>
           <h2 class="font-display font-extrabold text-3xl mt-2">¡Correcto!</h2>
           <p class="font-display font-extrabold text-5xl text-success mt-1">+${pts}</p>
@@ -426,7 +423,7 @@ function answer(j,qi){
     }, 700);
   } else {
     S.streak = 0;
-    if(btns[j]){ btns[j].style.background = "#ba1a1a"; btns[j].style.color = "#fff"; btns[j].style.borderColor = "#ba1a1a"; }
+    if(btns[j]){ btns[j].style.background = "#C62828"; btns[j].style.color = "#fff"; btns[j].style.borderColor = "#ba1a1a"; }
     if(btns[q.a]){ btns[q.a].style.background = "#1E7A5F"; btns[q.a].style.color = "#fff"; btns[q.a].style.borderColor = "#1E7A5F"; }
     FX.bad(); vibrate([80,60,80]); shakeScreen();
     setTimeout(()=>showReto(qi,false), 900);
@@ -452,9 +449,9 @@ function showReto(qi,timeout){
       </div>
     </div>
     <p class="text-on-surface-variant text-sm mt-5 mb-3">${isBot()?S.players[S.turn]+" intenta cumplir el reto…":"El grupo decide si lo cumplió"}</p>
-    <div class="w-full grid gap-3 ${isBot()?"opacity-40 pointer-events-none":""}">
+    <div class="w-full grid gap-3 ${isBot()?"opacity-25 pointer-events-none":""}">
       <button onclick="retoOk()" class="w-full bg-success text-white py-4 rounded-2xl font-bold text-lg active-btn-press transition-all" style="box-shadow:0 6px 0 0 #0f5340;">Lo cumplió (+5)</button>
-      <button onclick="nextTurn()" class="w-full bg-white border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
+      <button onclick="nextTurn()" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
     </div>
   </main>`;
   if(isBot()){
@@ -500,16 +497,16 @@ function finishGame(){
     `<span class="confetti absolute w-2.5 h-4 rounded-sm" style="background:${c};left:${12+i*18}%;animation-delay:${i*0.25}s;"></span>`).join("");
   app.innerHTML = `${topBar()}
   <main class="flex-1 px-5 py-8 pb-32 max-w-lg mx-auto w-full">
-    <div class="bg-white border-2 border-outline-variant rounded-[28px] p-6 text-center relative overflow-hidden block-shadow-sm animate-pop">
+    <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-6 text-center relative overflow-hidden block-shadow-sm animate-pop">
       <div class="absolute inset-x-0 top-0 h-24 pointer-events-none" aria-hidden="true">${conf}</div>
-      <img alt="" src="${LOGO_IMG}" class="w-24 h-24 object-contain mx-auto rounded-2xl relative" style="background:#01041D;"/>
+      <img alt="" src="${LOGO_IMG}" class="w-20 h-20 object-contain mx-auto rounded-2xl relative"/>
       <span class="material-symbols-outlined text-cat-historia msf relative block" style="font-size:44px;">trophy</span>
       <h2 class="font-display font-extrabold text-3xl mt-1">${tie?"¡Empate mundial!":"¡Felicidades, "+sorted[0].n+"!"}</h2>
       <p class="text-on-surface-variant mt-1 mb-5">${tie?"Comparten el podio de hoy":"Has conquistado el podio de hoy"}</p>
       <div class="text-left">${sorted.map((p,i)=>scoreRow(p,i)).join("")}</div>
       <div class="grid gap-3 mt-6">
         <button onclick="go('setup')" class="w-full bg-primary-container text-white py-4 rounded-2xl font-bold text-lg block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Jugar otra vez</button>
-        <button onclick="go('home')" class="w-full bg-white border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al inicio</button>
+        <button onclick="go('home')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al inicio</button>
       </div>
     </div>
   </main>${bottomNav("board")}`;
