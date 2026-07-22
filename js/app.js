@@ -151,7 +151,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "3.2";
+const APP_VER = "3.3";
 /* ---------- PERFILES DE JUGADORES ---------- */
 function perfiles(){
   try { return JSON.parse(localStorage.getItem("tm_perfiles")) || []; } catch(e){ return []; }
@@ -440,7 +440,9 @@ render.home = () => {
         <span class="material-symbols-outlined msf">groups</span><span>En grupo aquí</span></button>
       <button onclick="go('online')" class="w-full bg-cat-cultura text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #0d6b6b;">
         <span class="material-symbols-outlined msf">travel_explore</span><span>En línea</span></button>
-      <p class="text-center text-on-surface-variant text-sm -mt-1">Vuelta al Mundo = tu aventura en solitario · En grupo = hasta 8 en un celular · En línea = cada quien con el suyo</p>
+      <button onclick="go('conquista')" class="w-full bg-cat-deportes text-white py-4 rounded-2xl font-display font-extrabold text-2xl active-btn-press transition-all flex items-center justify-center gap-3" style="box-shadow:0 6px 0 0 #8f3512;">
+        <span class="material-symbols-outlined msf">flag</span><span>Conquista Mundial</span></button>
+      <p class="text-center text-on-surface-variant text-sm -mt-1">Vuelta al Mundo = tu aventura · En grupo = hasta 8 aquí · En línea = salas con código · Conquista = gana países a jugadores reales</p>
       <div class="grid grid-cols-3 gap-3">
         <button onclick="go('cats')" class="bg-cat-ciencia text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">category</span><span class="text-sm">Categorías</span></button>
         <button onclick="go('board')" class="bg-cat-entret text-white py-4 rounded-xl font-bold block-shadow-md active-btn-press transition-all flex flex-col items-center gap-1"><span class="material-symbols-outlined">military_tech</span><span class="text-sm">Marcador</span></button>
@@ -673,6 +675,59 @@ render.settings = () => {
   </main>${bottomNav("settings")}`;
 };
 
+const TERRITORIOS = [
+  { id:"mx", n:"México", x:275, y:308 },
+  { id:"us", n:"Estados Unidos", x:292, y:236 },
+  { id:"ca", n:"Canadá", x:257, y:159 },
+  { id:"br", n:"Brasil", x:501, y:458 },
+  { id:"ar", n:"Argentina", x:443, y:567 },
+  { id:"pe", n:"Perú", x:395, y:458 },
+  { id:"co", n:"Colombia", x:403, y:394 },
+  { id:"cl", n:"Chile", x:412, y:571 },
+  { id:"gl", n:"Groenlandia", x:541, y:86 },
+  { id:"es", n:"España", x:711, y:231 },
+  { id:"fr", n:"Francia", x:738, y:199 },
+  { id:"uk", n:"Reino Unido", x:719, y:168 },
+  { id:"de", n:"Alemania", x:772, y:181 },
+  { id:"it", n:"Italia", x:783, y:222 },
+  { id:"gr", n:"Grecia", x:826, y:236 },
+  { id:"ma", n:"Marruecos", x:701, y:267 },
+  { id:"eg", n:"Egipto", x:861, y:290 },
+  { id:"ng", n:"Nigeria", x:763, y:372 },
+  { id:"ke", n:"Kenia", x:892, y:413 },
+  { id:"za", n:"Sudáfrica", x:834, y:544 },
+  { id:"ru", n:"Rusia", x:994, y:141 },
+  { id:"tr", n:"Turquía", x:883, y:236 },
+  { id:"sa", n:"Arabia Saudita", x:928, y:304 },
+  { id:"in", n:"India", x:1074, y:313 },
+  { id:"cn", n:"China", x:1194, y:254 },
+  { id:"jp", n:"Japón", x:1341, y:245 },
+  { id:"kr", n:"Corea del Sur", x:1294, y:249 },
+  { id:"id", n:"Indonesia", x:1230, y:422 },
+  { id:"au", n:"Australia", x:1323, y:526 },
+  { id:"nz", n:"Nueva Zelanda", x:1492, y:603 }
+];
+
+const ENERGIA_MAX = 5;
+function energia(){
+  const hoy = new Date().toISOString().slice(0,10);
+  let e;
+  try { e = JSON.parse(localStorage.getItem("tm_energia")) || {}; } catch(err){ e = {}; }
+  if(e.dia !== hoy) e = { dia:hoy, usados:0 };
+  return e;
+}
+function energiaRestante(){ return Math.max(0, ENERGIA_MAX - energia().usados); }
+function gastarEnergia(){
+  const e = energia();
+  e.usados = Math.min(ENERGIA_MAX, e.usados + 1);
+  localStorage.setItem("tm_energia", JSON.stringify(e));
+}
+function miCodigo(){
+  const yo = perfilActivo();
+  if(!yo || !window.SYNC) return null;
+  return SYNC.codigoDe(yo.id);
+}
+
 const ETAPAS = [
   { n:"París",           pais:"Francia",        seg:24, num:6,  icon:"tour",            color:"#17A2A2", x:738, y:186 },
   { n:"Roma",            pais:"Italia",         seg:23, num:6,  icon:"account_balance", color:"#DD9414", x:783, y:224 },
@@ -751,6 +806,241 @@ function mapaSVG(p, destacada = -1){
     <g id="avionCapa"></g>
   </svg>`;
 }
+
+window.atacarTerritorio = function(id){
+  if(energiaRestante() <= 0) return;
+  const t = TERRITORIOS.find(x=>x.id===id);
+  const d = (S._terr||{})[id];
+  gastarEnergia();
+  // 5 preguntas de categorías variadas
+  const bolsa = shuffle(Object.keys(CATS));
+  const preguntas = [];
+  bolsa.slice(0,5).forEach(c => {
+    const delCat = QS.map((q,i)=>({q,i})).filter(x=>x.q.c===c);
+    if(delCat.length) preguntas.push(delCat[Math.floor(Math.random()*delCat.length)].i);
+  });
+  while(preguntas.length < 5){
+    const r = Math.floor(Math.random()*QS.length);
+    if(!preguntas.includes(r)) preguntas.push(r);
+  }
+  S.conq = { id, nombre:t.n, objetivo: d ? d.puntos : 0, dueno: d ? d.nombre : null, preguntas, idx:0, puntos:0, aciertos:0 };
+  if(FX.on && FX.music.on) FX.music.arranca();
+  conqPregunta();
+};
+
+function conqPregunta(){
+  const c = S.conq;
+  if(c.idx >= c.preguntas.length) return conqResultado();
+  const qi = c.preguntas[c.idx];
+  const q = QS[qi], cat = CATS[q.c];
+  const SEG = 15;
+  c.left = SEG;
+  app.innerHTML = `${topBar({exit:true})}
+  <main class="flex-1 px-5 py-4 pb-10 max-w-lg mx-auto w-full flex flex-col items-center">
+    <div class="w-full flex items-center justify-between mb-2">
+      <span class="text-on-surface-variant font-bold text-sm">Conquistando ${c.nombre}</span>
+      <span class="font-display font-extrabold">${c.puntos} pts</span>
+    </div>
+    <div class="w-full h-2 rounded-full bg-surface-container-lowest overflow-hidden mb-3">
+      <div class="h-full rounded-full" style="width:${(c.idx/c.preguntas.length)*100}%;background:linear-gradient(90deg,#17A2A2,#5B3FA8);"></div>
+    </div>
+    <div class="relative w-20 h-20 mb-2">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96" aria-hidden="true">
+        <circle cx="48" cy="48" r="40" fill="transparent" stroke="#2B3160" stroke-width="10"></circle>
+        <circle id="cqRing" cx="48" cy="48" r="40" fill="transparent" stroke="${cat.color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0"></circle>
+      </svg>
+      <span id="cqClk" class="absolute inset-0 flex items-center justify-center font-display font-extrabold text-3xl text-primary">${SEG}</span>
+    </div>
+    <div class="w-full bg-surface-container border-4 rounded-[24px] p-5 animate-pop" style="border-color:${cat.color};box-shadow:0 8px 0 0 rgba(0,0,0,0.55);">
+      <div class="flex justify-center mb-3">
+        <span class="text-white text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1" style="background:${cat.color}">
+          <span class="material-symbols-outlined" style="font-size:14px;">${cat.icon}</span>${q.c}${cat.x2?" · x2":""}</span>
+      </div>
+      <p class="font-display font-bold text-lg text-center mb-4">${q.q}</p>
+      <div class="grid gap-2.5" id="cqOpts">
+        ${q.o.map((o,j)=>`<button onclick="conqResponder(${j},${qi})" class="w-full border-2 border-outline-variant rounded-xl py-3 px-4 font-bold text-left block-shadow-sm active-btn-press transition-all">${o}</button>`).join("")}
+      </div>
+    </div>
+    <p class="text-on-surface-variant text-sm mt-3">Pregunta ${c.idx+1} de ${c.preguntas.length}${c.objetivo?" · objetivo: "+(c.objetivo+1)+" pts":""}</p>
+  </main>`;
+  stopTimer();
+  S.timer = setInterval(()=>{
+    c.left--;
+    const k = document.getElementById("cqClk"), r = document.getElementById("cqRing");
+    if(k){ k.textContent = c.left; if(c.left<=4) k.classList.add("text-error"); }
+    if(r){ r.style.strokeDashoffset = 251.3*(1-c.left/SEG); if(c.left<=4) r.setAttribute("stroke","#FF6B6B"); }
+    if(c.left<=4 && c.left>0) FX.hurry();
+    if(c.left<=0){ stopTimer(); conqResponder(-1, qi); }
+  }, 1000);
+}
+
+window.conqResponder = function(j, qi){
+  stopTimer();
+  const c = S.conq, q = QS[qi], cat = CATS[q.c];
+  const btns = document.querySelectorAll("#cqOpts button");
+  btns.forEach(b => b.style.pointerEvents = "none");
+  if(j === q.a){
+    const base = cat.x2 ? 20 : 10;
+    const rapidez = Math.round(base * 0.5 * (c.left/15));
+    const pts = base + rapidez;
+    c.puntos += pts; c.aciertos++;
+    if(btns[j]){ btns[j].style.background="#1E7A5F"; btns[j].style.color="#fff"; btns[j].style.borderColor="#1E7A5F"; }
+    FX.good(0); flashPoints("+"+pts, "#37D399"); vibrate(30);
+  } else {
+    if(j>=0 && btns[j]){ btns[j].style.background="#C62828"; btns[j].style.color="#fff"; btns[j].style.borderColor="#C62828"; }
+    if(btns[q.a]){ btns[q.a].style.background="#1E7A5F"; btns[q.a].style.color="#fff"; btns[q.a].style.borderColor="#1E7A5F"; }
+    FX.bad(); shakeScreen();
+  }
+  c.idx++;
+  setTimeout(conqPregunta, 1100);
+};
+
+function conqResultado(){
+  stopTimer(); FX.music.para();
+  const c = S.conq;
+  const gana = c.puntos > c.objetivo;
+  const yo = perfilActivo();
+  if(gana){
+    FX.fanfare(); burstConfetti(80,true); vibrate([60,40,60,40,120]);
+    CONQ.conquistar(c.id, { nombre: yo.nombre, avatar: yo.av, codigo: miCodigo(), puntos: c.puntos })
+      .then(ok => { if(ok && S._terr) S._terr[c.id] = { nombre:yo.nombre, avatar:yo.av, codigo:miCodigo(), puntos:c.puntos }; });
+  } else { FX.bad(); shakeScreen(); }
+  app.innerHTML = `${topBar()}
+  <main class="flex-1 px-5 py-8 pb-32 max-w-lg mx-auto w-full">
+    <div class="bg-surface-container border-4 rounded-[28px] p-7 text-center block-shadow-sm animate-pop" style="border-color:${gana?"#1E7A5F":"#D6336C"};">
+      <span class="material-symbols-outlined msf" style="font-size:56px;color:${gana?"#37D399":"#FF6B6B"};">${gana?"flag":"shield"}</span>
+      <h2 class="font-display font-extrabold text-2xl mt-2">${gana?"¡"+c.nombre+" es tuyo!":"No pudiste conquistar "+c.nombre}</h2>
+      <p class="font-display font-extrabold text-4xl text-primary mt-3">${c.puntos} pts</p>
+      <p class="text-on-surface-variant text-sm">${c.aciertos} de ${c.preguntas.length} aciertos${c.objetivo?" · marca a batir: "+c.objetivo:""}</p>
+      ${gana?`<div class="mt-4 flex items-center justify-center gap-2">
+        <span style="display:inline-block;width:36px;height:36px;">${renderAvatarCara(yo.av,0,36)}</span>
+        <span class="font-bold">Tu bandera ondea en ${c.nombre}</span></div>`
+      :`<p class="text-on-surface-variant mt-4">${c.dueno?c.dueno+" defiende su territorio con "+c.objetivo+" puntos.":"Necesitas al menos "+(c.objetivo+1)+" puntos."}</p>`}
+      <div class="grid gap-3 mt-6">
+        ${energiaRestante()>0?`<button onclick="atacarTerritorio('${c.id}')" class="w-full bg-primary-container text-white py-3.5 rounded-xl font-bold block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined">replay</span> Intentar otra vez (${energiaRestante()} ataques)</button>`:""}
+        <button onclick="go('conquista')" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">Volver al mapa</button>
+      </div>
+    </div>
+  </main>${bottomNav("home")}`;
+}
+
+render.conquista = () => {
+  const yo = perfilActivo();
+  if(!yo){
+    app.innerHTML = `${topBar({back:"go('home')"})}
+    <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full">
+      <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-7 text-center block-shadow-sm">
+        <span class="material-symbols-outlined text-primary" style="font-size:44px;">person_add</span>
+        <p class="font-display font-extrabold text-xl mt-2">Necesitas un personaje</p>
+        <p class="text-on-surface-variant mt-1 mb-4">Tu personaje representa tu bandera en el mapa mundial.</p>
+        <button onclick="editarPerfil(null)" class="bg-primary-container text-white px-6 py-3 rounded-xl font-bold block-shadow-primary active-btn-press transition-all">Crear mi personaje</button>
+      </div>
+    </main>${bottomNav("home")}`;
+    return;
+  }
+  if(!window.SYNC || !SYNC.activo()){
+    app.innerHTML = `${topBar({back:"go('home')"})}
+    <main class="flex-1 px-5 py-10 max-w-lg mx-auto w-full">
+      <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-7 text-center block-shadow-sm">
+        <span class="material-symbols-outlined text-cat-cultura" style="font-size:44px;">public</span>
+        <p class="font-display font-extrabold text-xl mt-2">Activa la conexión mundial</p>
+        <p class="text-on-surface-variant mt-1 mb-4">Para conquistar países compites contra jugadores reales de todo el mundo. Solo se comparten tu nombre, tu personaje y tus puntos.</p>
+        <button onclick="go('settings')" class="bg-primary-container text-white px-6 py-3 rounded-xl font-bold block-shadow-primary active-btn-press transition-all">Ir a Ajustes</button>
+      </div>
+    </main>${bottomNav("home")}`;
+    return;
+  }
+  app.innerHTML = `${topBar({back:"go('home')"})}
+  <main class="flex-1 pb-32 max-w-3xl mx-auto w-full">
+    <div class="px-5 pt-5 text-center">
+      <h2 class="font-display font-bold text-2xl">Conquista Mundial</h2>
+      <p class="text-on-surface-variant text-sm">Supera la marca del dueño para quedarte con su país</p>
+      <div class="flex items-center justify-center gap-2 mt-3" id="conqResumen">
+        <span class="inline-flex items-center gap-1 bg-surface-container border-2 border-outline-variant rounded-full px-3 py-1">
+          <span class="material-symbols-outlined text-cat-deportes msf" style="font-size:16px;">bolt</span>
+          <span class="font-display font-extrabold text-sm">${energiaRestante()}</span>
+          <span class="text-on-surface-variant text-xs">/ ${ENERGIA_MAX} ataques hoy</span></span>
+      </div>
+    </div>
+    <div id="mapaWrap" class="mt-3 overflow-x-auto overflow-y-hidden">
+      <div class="min-w-[1600px]" id="mapaConq">
+        <div class="flex items-center justify-center" style="height:300px">
+          <span class="material-symbols-outlined text-primary urgent" style="font-size:40px;">travel_explore</span>
+        </div>
+      </div>
+    </div>
+    <div id="fichaTerr" class="px-5"></div>
+  </main>${bottomNav("home")}`;
+
+  CONQ.cargar(true).then(mapa => {
+    if(!mapa) {
+      const c = document.getElementById("mapaConq");
+      if(c) c.innerHTML = `<div class="p-8 text-center text-on-surface-variant">No pudimos cargar el mapa. Revisa tu conexión.</div>`;
+      return;
+    }
+    S._terr = mapa;
+    pintarMapaConquista();
+  });
+};
+
+function pintarMapaConquista(destacado){
+  const mapa = S._terr || {};
+  const mio = miCodigo();
+  const cont = document.getElementById("mapaConq");
+  if(!cont) return;
+  const marcas = TERRITORIOS.map(t => {
+    const d = mapa[t.id];
+    const esMio = d && d.codigo === mio;
+    const color = d ? (esMio ? "#5B3FA8" : "#D6336C") : "#2B3160";
+    return `<g transform="translate(${t.x},${t.y})" style="cursor:pointer" onclick="verTerritorio('${t.id}')" role="button" aria-label="${t.n}">
+      ${destacado===t.id?`<circle r="24" fill="${color}" opacity="0.3"><animate attributeName="r" values="18;28;18" dur="1.6s" repeatCount="indefinite"/></circle>`:""}
+      <circle r="13" fill="${color}" stroke="${esMio?"#C6B6FF":"#05081C"}" stroke-width="${esMio?3:2}"/>
+      ${d ? `<text y="5" text-anchor="middle" font-size="14">${String(d.avatar||"").startsWith("avt:")?"":(d.avatar||"🙂")}</text>` : `<text y="5" text-anchor="middle" font-size="13" fill="#6F6A92" font-weight="700">?</text>`}
+      <text y="28" text-anchor="middle" font-size="12" font-weight="700" fill="#ECEAF7" style="paint-order:stroke;stroke:#05081C;stroke-width:4;">${t.n}</text>
+    </g>`;
+  }).join("");
+  cont.innerHTML = `<svg viewBox="0 0 1600 800" width="1600" height="800" role="img" aria-label="Mapa de conquista">
+    <image href="${MAPA_IMG}" x="0" y="0" width="1600" height="800" preserveAspectRatio="none"/>
+    ${marcas}
+  </svg>`;
+  const mios = TERRITORIOS.filter(t => mapa[t.id] && mapa[t.id].codigo === mio).length;
+  const res = document.getElementById("conqResumen");
+  if(res && !res.dataset.listo){
+    res.dataset.listo = "1";
+    res.insertAdjacentHTML("beforeend", `<span class="inline-flex items-center gap-1 bg-surface-container border-2 border-outline-variant rounded-full px-3 py-1">
+      <span class="material-symbols-outlined text-primary msf" style="font-size:16px;">flag</span>
+      <span class="font-display font-extrabold text-sm" id="misPaises">${mios}</span>
+      <span class="text-on-surface-variant text-xs">tuyos</span></span>`);
+  } else if(document.getElementById("misPaises")) document.getElementById("misPaises").textContent = mios;
+}
+
+window.verTerritorio = function(id){
+  const t = TERRITORIOS.find(x=>x.id===id);
+  const d = (S._terr||{})[id];
+  const mio = miCodigo();
+  const esMio = d && d.codigo === mio;
+  const ficha = document.getElementById("fichaTerr");
+  if(!ficha) return;
+  const objetivo = d ? d.puntos : 0;
+  ficha.innerHTML = `<div class="bg-surface-container border-2 ${esMio?"border-primary-container":"border-outline-variant"} rounded-2xl p-5 mt-4 block-shadow-sm animate-pop">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden" style="background:${d?(esMio?"#5B3FA8":"#D6336C"):"#2B3160"}">
+        ${d ? (String(d.avatar||"").startsWith("avt:") ? renderAvatarCara(d.avatar,0,48) : (d.avatar||"🙂")) : '<span class="material-symbols-outlined text-on-surface-variant">flag</span>'}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-display font-extrabold text-lg leading-tight">${t.n}</p>
+        <p class="text-on-surface-variant text-sm">${d ? (esMio ? "Es tuyo · defiende con "+d.puntos+" pts" : "De "+d.nombre+" · "+d.puntos+" pts") : "Territorio libre"}</p>
+      </div>
+    </div>
+    <p class="text-on-surface-variant text-sm mt-3">${d ? (esMio ? "Vuelve a jugar para subir tu marca y hacerlo más difícil de robar." : "Necesitas más de "+objetivo+" puntos en 5 preguntas para conquistarlo.") : "Responde 5 preguntas para plantar tu bandera."}</p>
+    <button onclick="atacarTerritorio('${id}')" ${energiaRestante()<=0?"disabled":""} class="mt-4 w-full ${energiaRestante()<=0?"bg-outline-variant text-white/60":"bg-primary-container text-white block-shadow-primary active-btn-press"} py-3.5 rounded-xl font-display font-extrabold text-lg transition-all flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">${energiaRestante()<=0?"hourglass_empty":"swords"}</span>
+      ${energiaRestante()<=0 ? "Sin ataques hoy" : (esMio ? "Reforzar" : "Conquistar")}</button>
+  </div>`;
+  pintarMapaConquista(id);
+  const wrap = document.getElementById("mapaWrap");
+  if(wrap) wrap.scrollTo({ left: Math.max(0, t.x - wrap.clientWidth/2), behavior:"smooth" });
+};
 
 render.solo = () => {
   const yo = perfilActivo();

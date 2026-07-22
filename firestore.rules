@@ -44,6 +44,25 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /territorios/{pais} {
+      // El mapa de conquista es público.
+      allow read: if true;
+
+      // Solo se acepta un documento ligero y bien formado.
+      allow create, update: if request.resource.data.nombre is string
+        && request.resource.data.nombre.size() <= 18
+        && request.resource.data.avatar is string
+        && request.resource.data.avatar.size() <= 200
+        && request.resource.data.codigo is string
+        && request.resource.data.codigo.size() <= 8
+        && request.resource.data.puntos is number
+        && request.resource.data.puntos >= 0
+        && request.resource.data.puntos <= 200
+        && request.resource.data.fecha is number;
+
+      allow delete: if false;
+    }
+
     // Todo lo demás queda cerrado.
     match /{document=**} {
       allow read, write: if false;

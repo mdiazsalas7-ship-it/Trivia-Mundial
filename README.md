@@ -155,3 +155,17 @@ Si un jugador usa foto, en el ranking mundial aparece con un emoji genérico.
 **Código de viajero:** al activar la sincronización, cada perfil recibe un código de 8 caracteres. Con ese código se recupera el viaje en otro celular desde *Recuperar viaje con un código*.
 
 **Configuración necesaria en Firebase:** vuelve a publicar `firestore.rules` (incluye la colección `viajeros`). Si el ranking aparece vacío, revisa en la consola de Firebase si pide crear un índice compuesto para `estrellas` + `puntos`; el código funciona igual sin él, ordenando en el cliente.
+
+
+## Conquista Mundial
+
+Modo asíncrono contra jugadores reales de todo el mundo, sobre el mapa mundi.
+
+- Hay **30 territorios** conquistables. Cada uno guarda quién lo domina y con cuántos puntos.
+- Para conquistar uno respondes **5 preguntas** (15 segundos cada una, con bonus por rapidez). Si superas la marca del dueño actual, el país pasa a ser tuyo y tu personaje aparece plantado ahí para todo el mundo.
+- Cada jugador tiene **5 ataques al día**, que se recargan solos. Evita que alguien conquiste el mapa entero en una tarde y reparte el juego a lo largo de la semana.
+- Requiere activar la sincronización (Ajustes) porque compite contra jugadores reales.
+
+**Datos en Firestore:** colección `territorios`, un documento por país con `nombre`, `avatar`, `codigo`, `puntos` y `fecha`. Publica de nuevo `firestore.rules` para habilitarlo.
+
+**Ideas para más adelante:** temporadas mensuales con reinicio y campeón coronado, bonus por conquistar países vecinos, notificación cuando alguien te robe un territorio, y cosméticos para el personaje (sombreros, marcos) como fuente de ingresos.

@@ -1,4 +1,4 @@
-const VERSION = "tm-v19";
+const VERSION = "tm-v20";
 const SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const SHELL = [
   "./js/fx.js",
   "./js/app.js",
   "./js/sync.js",
+  "./js/conquista.js",
   "./manifest.webmanifest",
   "./assets/logo.webp",
   "./assets/mapa.webp",
