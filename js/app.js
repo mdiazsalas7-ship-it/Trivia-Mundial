@@ -151,7 +151,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "3.3";
+const APP_VER = "3.4";
 /* ---------- PERFILES DE JUGADORES ---------- */
 function perfiles(){
   try { return JSON.parse(localStorage.getItem("tm_perfiles")) || []; } catch(e){ return []; }
@@ -169,68 +169,121 @@ const DESCRIPCIONES = {
   "Sorpresa":       { d:"Datos curiosos e insólitos de todo el planeta. ¡Ojo! Esta carta vale el doble de puntos.", ej:"¿Qué país tiene una bandera que no es rectangular?" }
 };
 
-/* ---------- PERSONAJES POR BLOQUES ---------- */
-const PIELES  = ["#F7D9BE","#EFC08D","#D69A63","#B0713C","#8A5024","#5E3418"];
-const CAMISAS = ["#17A2A2","#1E7A5F","#DD9414","#D6336C","#D9531E","#5B3FA8","#2B6CB0","#C62828"];
-const FONDOS  = ["#17A2A2","#1E7A5F","#DD9414","#D6336C","#D9531E","#5B3FA8"];
-
-const PELOS = [
-  { id:0, n:"Rapado",   d:(c)=>`<path d="M26 34 Q26 22 50 22 Q74 22 74 34 L74 38 L26 38 Z" fill="${c}"/>` },
-  { id:1, n:"Corto",    d:(c)=>`<path d="M24 40 Q24 20 50 20 Q76 20 76 40 L76 44 Q70 34 50 34 Q30 34 24 44 Z" fill="${c}"/>` },
-  { id:2, n:"Largo",    d:(c)=>`<path d="M22 40 Q22 19 50 19 Q78 19 78 40 L78 72 L70 72 L70 40 Q70 33 50 33 Q30 33 30 40 L30 72 L22 72 Z" fill="${c}"/>` },
-  { id:3, n:"Moño",     d:(c)=>`<g fill="${c}"><circle cx="50" cy="16" r="9"/><path d="M24 40 Q24 21 50 21 Q76 21 76 40 L76 43 Q68 34 50 34 Q32 34 24 43 Z"/></g>` },
-  { id:4, n:"Rizado",   d:(c)=>`<g fill="${c}"><circle cx="32" cy="30" r="11"/><circle cx="50" cy="24" r="13"/><circle cx="68" cy="30" r="11"/><rect x="24" y="30" width="52" height="12" rx="5"/></g>` },
-  { id:5, n:"Gorra",    d:(c)=>`<g><path d="M24 36 Q24 18 50 18 Q76 18 76 36 L76 40 L24 40 Z" fill="${c}"/><rect x="18" y="38" width="64" height="7" rx="3.5" fill="${c}"/><rect x="18" y="38" width="64" height="7" rx="3.5" fill="#000" opacity="0.18"/></g>` },
-  { id:6, n:"Explorador", d:(c)=>`<g><ellipse cx="50" cy="41" rx="36" ry="8" fill="${c}"/><path d="M30 41 Q30 18 50 18 Q70 18 70 41 Z" fill="${c}"/><rect x="30" y="33" width="40" height="6" fill="#000" opacity="0.22"/></g>` },
-  { id:7, n:"Gorro",    d:(c)=>`<g><path d="M26 40 Q26 18 50 18 Q74 18 74 40 Z" fill="${c}"/><rect x="24" y="36" width="52" height="10" rx="5" fill="${c}"/><rect x="24" y="36" width="52" height="10" rx="5" fill="#fff" opacity="0.18"/><circle cx="50" cy="14" r="6" fill="${c}"/><circle cx="50" cy="14" r="6" fill="#fff" opacity="0.25"/></g>` },
-  { id:8, n:"Capucha",  d:(c)=>`<path d="M20 46 Q20 16 50 16 Q80 16 80 46 L80 60 L72 60 Q72 36 50 36 Q28 36 28 60 L20 60 Z" fill="${c}"/>` }
+/* ---------- EXPLORADORES ÉPICOS ---------- */
+const AURAS = [
+  { id:0, n:"Turquesa", c:"#17A2A2", luz:"#8FF3F0" },
+  { id:1, n:"Esmeralda", c:"#1E7A5F", luz:"#7CE8B8" },
+  { id:2, n:"Ámbar",    c:"#DD9414", luz:"#FFD98A" },
+  { id:3, n:"Magenta",  c:"#D6336C", luz:"#FF9CC0" },
+  { id:4, n:"Fuego",    c:"#D9531E", luz:"#FFB088" },
+  { id:5, n:"Púrpura",  c:"#5B3FA8", luz:"#C6B6FF" }
 ];
 
-const CARAS = [
-  { id:0, n:"Feliz",    d:`<g><rect x="38" y="48" width="6" height="8" rx="3" fill="#1a1a1a"/><rect x="56" y="48" width="6" height="8" rx="3" fill="#1a1a1a"/><path d="M40 64 Q50 72 60 64" stroke="#1a1a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>` },
-  { id:1, n:"Sonrisa",  d:`<g><circle cx="41" cy="52" r="3.4" fill="#1a1a1a"/><circle cx="59" cy="52" r="3.4" fill="#1a1a1a"/><path d="M42 64 Q50 69 58 64" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` },
-  { id:2, n:"Risa",     d:`<g><path d="M37 51 Q41 46 45 51" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 51 Q59 46 63 51" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M39 62 Q50 74 61 62 Z" fill="#1a1a1a"/></g>` },
-  { id:3, n:"Guiño",    d:`<g><circle cx="41" cy="52" r="3.4" fill="#1a1a1a"/><path d="M55 52 Q59 48 63 52" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M42 64 Q50 70 58 64" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` },
-  { id:4, n:"Sorpresa", d:`<g><circle cx="41" cy="51" r="4" fill="#1a1a1a"/><circle cx="59" cy="51" r="4" fill="#1a1a1a"/><ellipse cx="50" cy="65" rx="5" ry="6" fill="#1a1a1a"/></g>` },
-  { id:5, n:"Pícaro",   d:`<g><path d="M37 50 L45 53" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/><path d="M63 50 L55 53" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/><circle cx="41" cy="54" r="3" fill="#1a1a1a"/><circle cx="59" cy="54" r="3" fill="#1a1a1a"/><path d="M41 65 Q50 70 59 63" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` }
+/* cada equipo dibuja su silueta; se pinta dos veces: contorno luminoso + relleno oscuro */
+const EQUIPOS = [
+  { id:0, n:"Explorador", d:`<path d="M28 52 Q28 24 60 24 Q92 24 92 52 L92 55 Q78 47 60 47 Q42 47 28 55 Z"/><path d="M16 56 Q60 44 104 56 Q60 68 16 56 Z"/>` },
+  { id:1, n:"Aviador",    d:`<path d="M30 54 Q30 22 60 22 Q90 22 90 54 L90 62 Q90 70 82 70 L80 52 Q72 44 60 44 Q48 44 40 52 L38 70 Q30 70 30 62 Z"/><rect x="36" y="42" width="20" height="13" rx="6"/><rect x="64" y="42" width="20" height="13" rx="6"/><rect x="52" y="46" width="16" height="5"/>` },
+  { id:2, n:"Capucha",    d:`<path d="M22 78 Q22 20 60 20 Q98 20 98 78 L86 78 Q86 42 60 42 Q34 42 34 78 Z"/>` },
+  { id:3, n:"Turbante",   d:`<path d="M30 50 Q30 20 60 20 Q90 20 90 50 Q90 56 84 56 L36 56 Q30 56 30 50 Z"/><path d="M32 44 Q60 34 88 44" fill="none" stroke-width="3"/>` },
+  { id:4, n:"Polar",      d:`<path d="M30 50 Q30 20 60 20 Q90 20 90 50 Z"/><rect x="26" y="46" width="68" height="13" rx="6"/><circle cx="60" cy="15" r="8"/>` },
+  { id:5, n:"Sombrero",   d:`<path d="M36 50 Q36 26 60 26 Q84 26 84 50 Z"/><path d="M22 52 Q60 42 98 52 Q60 62 22 52 Z"/>` },
+  { id:6, n:"Casco",      d:`<path d="M30 52 Q30 22 60 22 Q90 22 90 52 L90 58 L30 58 Z"/><ellipse cx="60" cy="58" rx="38" ry="7"/><rect x="56" y="20" width="8" height="14" rx="4"/>` },
+  { id:7, n:"Laurel",     d:`<path d="M34 52 Q34 26 60 26 Q86 26 86 52 Z"/><path d="M26 60 Q30 40 44 32" fill="none" stroke-width="4"/><path d="M94 60 Q90 40 76 32" fill="none" stroke-width="4"/>` }
 ];
 
-const EXTRAS = [
-  { id:0, n:"Nada",       d:"" },
-  { id:1, n:"Gafas",      d:`<g fill="none" stroke="#1a1a1a" stroke-width="2.6"><rect x="33" y="46" width="16" height="12" rx="4" fill="#9fd8ff" fill-opacity="0.45"/><rect x="51" y="46" width="16" height="12" rx="4" fill="#9fd8ff" fill-opacity="0.45"/><path d="M49 52 L51 52"/></g>` },
-  { id:2, n:"Gafas de sol", d:`<g><rect x="32" y="45" width="17" height="13" rx="4" fill="#1a1a1a"/><rect x="51" y="45" width="17" height="13" rx="4" fill="#1a1a1a"/><rect x="48" y="50" width="4" height="2.5" fill="#1a1a1a"/></g>` },
-  { id:3, n:"Auriculares", d:`<g><path d="M24 46 Q24 20 50 20 Q76 20 76 46" stroke="#e8e8f0" stroke-width="5" fill="none"/><rect x="17" y="42" width="12" height="20" rx="5" fill="#e8e8f0"/><rect x="71" y="42" width="12" height="20" rx="5" fill="#e8e8f0"/></g>` },
-  { id:4, n:"Bufanda",    d:`<g><path d="M30 74 Q50 84 70 74 L70 82 Q50 91 30 82 Z" fill="#D6336C"/><rect x="44" y="80" width="9" height="18" rx="3" fill="#D6336C"/></g>` },
-  { id:5, n:"Corona",     d:`<path d="M34 22 L40 32 L50 20 L60 32 L66 22 L66 36 L34 36 Z" fill="#DD9414" stroke="#8a5a08" stroke-width="1.5"/>` }
+const CAPAS = [
+  { id:0, n:"Abrigo",  d:`<path d="M18 120 L18 104 Q18 86 40 80 L60 76 L80 80 Q102 86 102 104 L102 120 Z"/><path d="M60 76 L50 96 L60 104 L70 96 Z"/>` },
+  { id:1, n:"Capa",    d:`<path d="M14 120 L18 100 Q22 84 42 79 L60 75 L78 79 Q98 84 102 100 L106 120 Z"/><circle cx="60" cy="84" r="6"/>` },
+  { id:2, n:"Bufanda", d:`<path d="M18 120 L18 102 Q18 86 40 80 L60 76 L80 80 Q102 86 102 104 L102 120 Z"/><path d="M36 84 Q60 96 84 84 L86 94 Q60 106 34 94 Z"/><rect x="52" y="92" width="11" height="26" rx="4"/>` },
+  { id:3, n:"Poncho",  d:`<path d="M16 120 L26 92 Q34 78 60 76 Q86 78 94 92 L104 120 Z"/><path d="M30 100 L90 100" fill="none" stroke-width="4"/>` }
 ];
 
-function personajeDefecto(){
-  return { piel:1, cara:0, pelo:1, colorPelo:"#3b2a1e", camisa:0, extra:0, fondo:0 };
-}
+const MIRADAS = [
+  { id:0, n:"Intensa",  d:(l)=>`<g><ellipse cx="49" cy="62" rx="5" ry="2.6" fill="${l}"/><ellipse cx="71" cy="62" rx="5" ry="2.6" fill="${l}"/></g>` },
+  { id:1, n:"Serena",   d:(l)=>`<g opacity="0.75"><rect x="45" y="61" width="10" height="2.6" rx="1.3" fill="${l}"/><rect x="65" y="61" width="10" height="2.6" rx="1.3" fill="${l}"/></g>` },
+  { id:2, n:"Enigma",   d:(l)=>`` }
+];
+
+function personajeDefecto(){ return { equipo:0, capa:0, aura:0, mirada:0 }; }
 function personajeAleatorio(){
-  const r = a => Math.floor(Math.random()*a);
-  const pelos = ["#1a1a1a","#3b2a1e","#7a4a20","#c9a227","#b03a2e","#5B3FA8","#e8e8f0"];
-  return { piel:r(PIELES.length), cara:r(CARAS.length), pelo:r(PELOS.length),
-           colorPelo:pelos[r(pelos.length)], camisa:r(CAMISAS.length), extra:r(EXTRAS.length), fondo:r(FONDOS.length) };
+  const r = n => Math.floor(Math.random()*n);
+  return { equipo:r(EQUIPOS.length), capa:r(CAPAS.length), aura:r(AURAS.length), mirada:r(MIRADAS.length) };
 }
-function personajeSVG(cfg, size){
+
+/* rango según logros: territorios conquistados y estrellas del viaje */
+const RANGOS = [
+  { min:0,  n:"Novato",   c:"#8a6a45", luz:"#C9A57A" },
+  { min:6,  n:"Veterano", c:"#9aa3b2", luz:"#DCE3EE" },
+  { min:18, n:"Maestro",  c:"#DD9414", luz:"#FFE0A0" },
+  { min:36, n:"Leyenda",  c:"#C6B6FF", luz:"#F0EAFF" }
+];
+function rangoDe(puntosLogro){
+  let r = RANGOS[0];
+  RANGOS.forEach(x => { if(puntosLogro >= x.min) r = x; });
+  return r;
+}
+function logrosDe(perfilId){
+  const prog = progresoMundo(perfilId);
+  const estrellas = Object.values(prog.estrellas||{}).reduce((a,b)=>a+b,0);
+  let terr = 0;
+  try {
+    const mio = (window.SYNC && perfilId) ? SYNC.mapa()[perfilId] : null;
+    if(mio && S._terr) terr = Object.values(S._terr).filter(t => t.codigo === mio).length;
+  } catch(e){}
+  return { estrellas, terr, total: terr*3 + Math.floor(estrellas/2) };
+}
+
+function personajeSVG(cfg, size, logros){
   const c = Object.assign(personajeDefecto(), cfg||{});
-  const piel = PIELES[c.piel] || PIELES[1];
-  const fondo = FONDOS[c.fondo] || FONDOS[0];
-  const camisa = CAMISAS[c.camisa] || CAMISAS[0];
-  const pelo = PELOS[c.pelo] || PELOS[1];
-  const cara = CARAS[c.cara] || CARAS[0];
-  const extra = EXTRAS[c.extra] || EXTRAS[0];
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="display:block;border-radius:50%;">
-    <defs><radialGradient id="g${c.fondo}${c.camisa}" cx="50%" cy="38%"><stop offset="0%" stop-color="${fondo}"/><stop offset="100%" stop-color="${fondo}" stop-opacity="0.55"/></radialGradient></defs>
-    <rect width="100" height="100" fill="url(#g${c.fondo}${c.camisa})"/>
-    <rect x="26" y="76" width="48" height="26" rx="9" fill="${camisa}"/>
-    <rect x="43" y="68" width="14" height="12" fill="${piel}"/>
-    <rect x="43" y="68" width="14" height="12" fill="#000" opacity="0.12"/>
-    <rect x="28" y="30" width="44" height="44" rx="10" fill="${piel}"/>
-    ${cara.d}
-    ${pelo.d(c.colorPelo || "#3b2a1e")}
-    ${extra.d}
+  const eq = EQUIPOS[c.equipo] || EQUIPOS[0];
+  const capa = CAPAS[c.capa] || CAPAS[0];
+  const aura = AURAS[c.aura] || AURAS[0];
+  const mirada = MIRADAS[c.mirada] || MIRADAS[0];
+  const L = logros || { total:0, terr:0 };
+  const rango = rangoDe(L.total);
+  const grande = size >= 56;
+  const uid = "a" + (c.equipo)+(c.capa)+(c.aura)+(c.mirada)+Math.round(size);
+
+  const figura = `${capa.d}<path d="M50 74 L50 62 L70 62 L70 74 Z"/><path d="M34 46 Q34 18 60 18 Q86 18 86 46 L86 56 Q86 76 60 76 Q34 76 34 56 Z"/>${eq.d}`;
+
+  const marco = () => {
+    if(!grande) return `<circle cx="60" cy="60" r="57" fill="none" stroke="${rango.c}" stroke-width="4"/>`;
+    let m = `<circle cx="60" cy="60" r="57" fill="none" stroke="${rango.c}" stroke-width="4"/>
+             <circle cx="60" cy="60" r="52" fill="none" stroke="${rango.luz}" stroke-width="1.2" opacity="0.6"/>`;
+    if(L.total >= 6) m += `<circle cx="60" cy="60" r="59.5" fill="none" stroke="${rango.luz}" stroke-width="1.5" opacity="0.5"/>`;
+    if(L.total >= 18) m += [0,90,180,270].map(ang=>`<g transform="rotate(${ang} 60 60)"><path d="M60 0.5 L64 6 L60 11 L56 6 Z" fill="${rango.luz}"/></g>`).join("");
+    if(L.total >= 36) m += `<path d="M18 92 Q6 70 14 46" fill="none" stroke="${rango.luz}" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M102 92 Q114 70 106 46" fill="none" stroke="${rango.luz}" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M48 4 L54 12 L60 2 L66 12 L72 4 L72 14 L48 14 Z" fill="${rango.luz}"/>`;
+    return m;
+  };
+
+  return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" style="display:block;border-radius:50%;overflow:hidden;">
+    <defs>
+      <radialGradient id="f${uid}" cx="50%" cy="34%">
+        <stop offset="0%" stop-color="${aura.c}" stop-opacity="0.95"/>
+        <stop offset="55%" stop-color="${aura.c}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#03050F" stop-opacity="1"/>
+      </radialGradient>
+      <clipPath id="c${uid}"><circle cx="60" cy="60" r="60"/></clipPath>
+    </defs>
+    <g clip-path="url(#c${uid})">
+      <rect width="120" height="120" fill="#03050F"/>
+      <rect width="120" height="120" fill="url(#f${uid})"/>
+      ${grande?`<g opacity="0.22">
+        <path d="M60 30 L34 120 L46 120 Z" fill="${aura.luz}"/>
+        <path d="M60 30 L86 120 L74 120 Z" fill="${aura.luz}"/>
+        <path d="M60 30 L58 120 L62 120 Z" fill="${aura.luz}"/></g>`:""}
+      <circle cx="60" cy="46" r="30" fill="${aura.luz}" opacity="0.28"/>
+      <g fill="none" stroke="${aura.luz}" stroke-width="5" stroke-linejoin="round" opacity="0.95">${figura}</g>
+      <g fill="#05070F" stroke="#05070F" stroke-width="0.5">${figura}</g>
+      ${mirada.d(aura.luz)}
+    </g>
+    ${marco()}
+    ${grande && L.terr > 0 ? `<g>
+      <rect x="42" y="100" width="36" height="16" rx="8" fill="#05070F" stroke="${rango.c}" stroke-width="1.5"/>
+      <text x="60" y="111.5" text-anchor="middle" font-size="10" font-weight="800" fill="${rango.luz}" font-family="Plus Jakarta Sans">${L.terr} 🏴</text>
+    </g>` : ""}
   </svg>`;
 }
 
@@ -240,8 +293,11 @@ function avatarColor(i){ return Object.values(CATS)[i%6].color; }
 function renderAvatarCara(av, i, size){
   const s = size || 40;
   if(av && typeof av === "string" && av.startsWith("avt:")){
-    try { return `<span style="display:inline-block;width:${s}px;height:${s}px;">${personajeSVG(JSON.parse(av.slice(4)), s)}</span>`; }
-    catch(e){ /* si falla, sigue con el resto */ }
+    try {
+      const cfg = JSON.parse(av.slice(4));
+      const L = arguments.length > 3 ? arguments[3] : (cfg._id ? logrosDe(cfg._id) : null);
+      return `<span style="display:inline-block;width:${s}px;height:${s}px;">${personajeSVG(cfg, s, L)}</span>`;
+    } catch(e){ /* si falla, sigue con el resto */ }
   }
   if(av && av.startsWith("data:")){
     return `<img src="${av}" alt="" class="rounded-full object-cover" style="width:${s}px;height:${s}px;"/>`;
@@ -306,22 +362,29 @@ function cfgActual(p){
 
 function editorPersonaje(p){
   const c = cfgActual(p);
-  const pelosCol = ["#1a1a1a","#3b2a1e","#7a4a20","#c9a227","#b03a2e","#5B3FA8","#e8e8f0"];
-  const fila = (titulo, items, campo, render) => `
-    <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mt-3 mb-1.5">${titulo}</p>
+  const yo = perfilActivo();
+  const L = logrosDe(p.id || (yo && yo.id));
+  const rango = rangoDe(L.total);
+  const fila = (titulo, items, campo) => `
+    <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mt-4 mb-1.5">${titulo}</p>
     <div class="flex gap-2 overflow-x-auto pb-1">
-      ${items.map((it,i)=>`<button onclick="setPersonaje('${campo}',${typeof it === "string" ? `'${it}'` : i})" class="flex-shrink-0 rounded-xl border-2 p-1 transition-all active:scale-90 ${(c[campo]===(typeof it==="string"?it:i))?"border-primary-container bg-primary-fixed":"border-outline-variant"}">${render(it,i)}</button>`).join("")}
+      ${items.map((it,i)=>`<button onclick="setPersonaje('${campo}',${i})" class="flex-shrink-0 rounded-2xl border-2 p-1 transition-all active:scale-90 ${c[campo]===i?"border-primary-container":"border-outline-variant"}" title="${it.n}">
+        <span style="display:block;width:52px;height:52px;">${personajeSVG({...c,[campo]:i}, 52, L)}</span></button>`).join("")}
     </div>`;
   return `<div class="mb-4">
+    <div class="rounded-2xl border-2 border-outline-variant p-3 mb-3 flex items-center gap-3" style="background:linear-gradient(135deg, ${rango.c}22, transparent);">
+      <span class="material-symbols-outlined msf" style="color:${rango.c};font-size:26px;">military_tech</span>
+      <div class="flex-1">
+        <p class="font-display font-extrabold" style="color:${rango.luz}">${rango.n}</p>
+        <p class="text-on-surface-variant text-xs">${L.terr} territorio${L.terr===1?"":"s"} · ${L.estrellas} estrella${L.estrellas===1?"":"s"} · conquista más para subir de rango</p>
+      </div>
+    </div>
     <button onclick="dadoPersonaje()" class="w-full py-2.5 rounded-xl font-bold border-2 border-outline-variant text-on-surface-variant flex items-center justify-center gap-2 active:translate-y-1 transition-all">
       <span class="material-symbols-outlined" style="font-size:18px;">casino</span> Sorpréndeme</button>
-    ${fila("Cara", CARAS, "cara", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,cara:i},38)}</span>`)}
-    ${fila("Pelo y gorros", PELOS, "pelo", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,pelo:i},38)}</span>`)}
-    ${fila("Color de pelo", pelosCol, "colorPelo", (it)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${it}"></span>`)}
-    ${fila("Piel", PIELES, "piel", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${PIELES[i]}"></span>`)}
-    ${fila("Camiseta", CAMISAS, "camisa", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${CAMISAS[i]}"></span>`)}
-    ${fila("Extras", EXTRAS, "extra", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,extra:i},38)}</span>`)}
-    ${fila("Fondo", FONDOS, "fondo", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${FONDOS[i]}"></span>`)}
+    ${fila("Equipo", EQUIPOS, "equipo")}
+    ${fila("Atuendo", CAPAS, "capa")}
+    ${fila("Aura", AURAS, "aura")}
+    ${fila("Mirada", MIRADAS, "mirada")}
   </div>`;
 }
 
@@ -349,12 +412,18 @@ window.guardarPerfilEdit = function(){
   const nombre = (el && el.value.trim()) || "Jugador";
   const p = S._perfilEdit;
   const lista = perfiles();
+  const marcarId = (av, id) => {
+    if(typeof av === "string" && av.startsWith("avt:")){
+      try { const c = JSON.parse(av.slice(4)); c._id = id; return "avt:" + JSON.stringify(c); } catch(e){}
+    }
+    return av;
+  };
   if(p.id){
     const i = lista.findIndex(x=>x.id===p.id);
-    if(i>=0) lista[i] = { id:p.id, nombre, av:p.av };
+    if(i>=0) lista[i] = { id:p.id, nombre, av:marcarId(p.av, p.id) };
   } else {
     const id = nuevoId();
-    lista.push({ id, nombre, av:p.av });
+    lista.push({ id, nombre, av:marcarId(p.av, id) });
     if(!localStorage.getItem("tm_perfil_activo")) localStorage.setItem("tm_perfil_activo", id);
   }
   guardarPerfiles(lista);
