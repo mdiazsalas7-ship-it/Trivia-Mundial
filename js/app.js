@@ -151,7 +151,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "3.1";
+const APP_VER = "3.2";
 /* ---------- PERFILES DE JUGADORES ---------- */
 function perfiles(){
   try { return JSON.parse(localStorage.getItem("tm_perfiles")) || []; } catch(e){ return []; }
@@ -169,11 +169,80 @@ const DESCRIPCIONES = {
   "Sorpresa":       { d:"Datos curiosos e insólitos de todo el planeta. ¡Ojo! Esta carta vale el doble de puntos.", ej:"¿Qué país tiene una bandera que no es rectangular?" }
 };
 
+/* ---------- PERSONAJES POR BLOQUES ---------- */
+const PIELES  = ["#F7D9BE","#EFC08D","#D69A63","#B0713C","#8A5024","#5E3418"];
+const CAMISAS = ["#17A2A2","#1E7A5F","#DD9414","#D6336C","#D9531E","#5B3FA8","#2B6CB0","#C62828"];
+const FONDOS  = ["#17A2A2","#1E7A5F","#DD9414","#D6336C","#D9531E","#5B3FA8"];
+
+const PELOS = [
+  { id:0, n:"Rapado",   d:(c)=>`<path d="M26 34 Q26 22 50 22 Q74 22 74 34 L74 38 L26 38 Z" fill="${c}"/>` },
+  { id:1, n:"Corto",    d:(c)=>`<path d="M24 40 Q24 20 50 20 Q76 20 76 40 L76 44 Q70 34 50 34 Q30 34 24 44 Z" fill="${c}"/>` },
+  { id:2, n:"Largo",    d:(c)=>`<path d="M22 40 Q22 19 50 19 Q78 19 78 40 L78 72 L70 72 L70 40 Q70 33 50 33 Q30 33 30 40 L30 72 L22 72 Z" fill="${c}"/>` },
+  { id:3, n:"Moño",     d:(c)=>`<g fill="${c}"><circle cx="50" cy="16" r="9"/><path d="M24 40 Q24 21 50 21 Q76 21 76 40 L76 43 Q68 34 50 34 Q32 34 24 43 Z"/></g>` },
+  { id:4, n:"Rizado",   d:(c)=>`<g fill="${c}"><circle cx="32" cy="30" r="11"/><circle cx="50" cy="24" r="13"/><circle cx="68" cy="30" r="11"/><rect x="24" y="30" width="52" height="12" rx="5"/></g>` },
+  { id:5, n:"Gorra",    d:(c)=>`<g><path d="M24 36 Q24 18 50 18 Q76 18 76 36 L76 40 L24 40 Z" fill="${c}"/><rect x="18" y="38" width="64" height="7" rx="3.5" fill="${c}"/><rect x="18" y="38" width="64" height="7" rx="3.5" fill="#000" opacity="0.18"/></g>` },
+  { id:6, n:"Explorador", d:(c)=>`<g><ellipse cx="50" cy="41" rx="36" ry="8" fill="${c}"/><path d="M30 41 Q30 18 50 18 Q70 18 70 41 Z" fill="${c}"/><rect x="30" y="33" width="40" height="6" fill="#000" opacity="0.22"/></g>` },
+  { id:7, n:"Gorro",    d:(c)=>`<g><path d="M26 40 Q26 18 50 18 Q74 18 74 40 Z" fill="${c}"/><rect x="24" y="36" width="52" height="10" rx="5" fill="${c}"/><rect x="24" y="36" width="52" height="10" rx="5" fill="#fff" opacity="0.18"/><circle cx="50" cy="14" r="6" fill="${c}"/><circle cx="50" cy="14" r="6" fill="#fff" opacity="0.25"/></g>` },
+  { id:8, n:"Capucha",  d:(c)=>`<path d="M20 46 Q20 16 50 16 Q80 16 80 46 L80 60 L72 60 Q72 36 50 36 Q28 36 28 60 L20 60 Z" fill="${c}"/>` }
+];
+
+const CARAS = [
+  { id:0, n:"Feliz",    d:`<g><rect x="38" y="48" width="6" height="8" rx="3" fill="#1a1a1a"/><rect x="56" y="48" width="6" height="8" rx="3" fill="#1a1a1a"/><path d="M40 64 Q50 72 60 64" stroke="#1a1a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>` },
+  { id:1, n:"Sonrisa",  d:`<g><circle cx="41" cy="52" r="3.4" fill="#1a1a1a"/><circle cx="59" cy="52" r="3.4" fill="#1a1a1a"/><path d="M42 64 Q50 69 58 64" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` },
+  { id:2, n:"Risa",     d:`<g><path d="M37 51 Q41 46 45 51" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 51 Q59 46 63 51" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M39 62 Q50 74 61 62 Z" fill="#1a1a1a"/></g>` },
+  { id:3, n:"Guiño",    d:`<g><circle cx="41" cy="52" r="3.4" fill="#1a1a1a"/><path d="M55 52 Q59 48 63 52" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M42 64 Q50 70 58 64" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` },
+  { id:4, n:"Sorpresa", d:`<g><circle cx="41" cy="51" r="4" fill="#1a1a1a"/><circle cx="59" cy="51" r="4" fill="#1a1a1a"/><ellipse cx="50" cy="65" rx="5" ry="6" fill="#1a1a1a"/></g>` },
+  { id:5, n:"Pícaro",   d:`<g><path d="M37 50 L45 53" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/><path d="M63 50 L55 53" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/><circle cx="41" cy="54" r="3" fill="#1a1a1a"/><circle cx="59" cy="54" r="3" fill="#1a1a1a"/><path d="M41 65 Q50 70 59 63" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/></g>` }
+];
+
+const EXTRAS = [
+  { id:0, n:"Nada",       d:"" },
+  { id:1, n:"Gafas",      d:`<g fill="none" stroke="#1a1a1a" stroke-width="2.6"><rect x="33" y="46" width="16" height="12" rx="4" fill="#9fd8ff" fill-opacity="0.45"/><rect x="51" y="46" width="16" height="12" rx="4" fill="#9fd8ff" fill-opacity="0.45"/><path d="M49 52 L51 52"/></g>` },
+  { id:2, n:"Gafas de sol", d:`<g><rect x="32" y="45" width="17" height="13" rx="4" fill="#1a1a1a"/><rect x="51" y="45" width="17" height="13" rx="4" fill="#1a1a1a"/><rect x="48" y="50" width="4" height="2.5" fill="#1a1a1a"/></g>` },
+  { id:3, n:"Auriculares", d:`<g><path d="M24 46 Q24 20 50 20 Q76 20 76 46" stroke="#e8e8f0" stroke-width="5" fill="none"/><rect x="17" y="42" width="12" height="20" rx="5" fill="#e8e8f0"/><rect x="71" y="42" width="12" height="20" rx="5" fill="#e8e8f0"/></g>` },
+  { id:4, n:"Bufanda",    d:`<g><path d="M30 74 Q50 84 70 74 L70 82 Q50 91 30 82 Z" fill="#D6336C"/><rect x="44" y="80" width="9" height="18" rx="3" fill="#D6336C"/></g>` },
+  { id:5, n:"Corona",     d:`<path d="M34 22 L40 32 L50 20 L60 32 L66 22 L66 36 L34 36 Z" fill="#DD9414" stroke="#8a5a08" stroke-width="1.5"/>` }
+];
+
+function personajeDefecto(){
+  return { piel:1, cara:0, pelo:1, colorPelo:"#3b2a1e", camisa:0, extra:0, fondo:0 };
+}
+function personajeAleatorio(){
+  const r = a => Math.floor(Math.random()*a);
+  const pelos = ["#1a1a1a","#3b2a1e","#7a4a20","#c9a227","#b03a2e","#5B3FA8","#e8e8f0"];
+  return { piel:r(PIELES.length), cara:r(CARAS.length), pelo:r(PELOS.length),
+           colorPelo:pelos[r(pelos.length)], camisa:r(CAMISAS.length), extra:r(EXTRAS.length), fondo:r(FONDOS.length) };
+}
+function personajeSVG(cfg, size){
+  const c = Object.assign(personajeDefecto(), cfg||{});
+  const piel = PIELES[c.piel] || PIELES[1];
+  const fondo = FONDOS[c.fondo] || FONDOS[0];
+  const camisa = CAMISAS[c.camisa] || CAMISAS[0];
+  const pelo = PELOS[c.pelo] || PELOS[1];
+  const cara = CARAS[c.cara] || CARAS[0];
+  const extra = EXTRAS[c.extra] || EXTRAS[0];
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="display:block;border-radius:50%;">
+    <defs><radialGradient id="g${c.fondo}${c.camisa}" cx="50%" cy="38%"><stop offset="0%" stop-color="${fondo}"/><stop offset="100%" stop-color="${fondo}" stop-opacity="0.55"/></radialGradient></defs>
+    <rect width="100" height="100" fill="url(#g${c.fondo}${c.camisa})"/>
+    <rect x="26" y="76" width="48" height="26" rx="9" fill="${camisa}"/>
+    <rect x="43" y="68" width="14" height="12" fill="${piel}"/>
+    <rect x="43" y="68" width="14" height="12" fill="#000" opacity="0.12"/>
+    <rect x="28" y="30" width="44" height="44" rx="10" fill="${piel}"/>
+    ${cara.d}
+    ${pelo.d(c.colorPelo || "#3b2a1e")}
+    ${extra.d}
+  </svg>`;
+}
+
 const AVATARES = ["😀","😎","🤓","🥳","😺","🐶","🦊","🐼","🦁","🐨","🐵","🦄","🐸","🐯","🐧","🦖","🤖","👽","🦉","🐙","🍕","⚽","🎸","🚀","🌟","🔥","🎯","👑","🎩","🦸","🧙","🧠"];
 function avatarColor(i){ return Object.values(CATS)[i%6].color; }
 
 function renderAvatarCara(av, i, size){
   const s = size || 40;
+  if(av && typeof av === "string" && av.startsWith("avt:")){
+    try { return `<span style="display:inline-block;width:${s}px;height:${s}px;">${personajeSVG(JSON.parse(av.slice(4)), s)}</span>`; }
+    catch(e){ /* si falla, sigue con el resto */ }
+  }
   if(av && av.startsWith("data:")){
     return `<img src="${av}" alt="" class="rounded-full object-cover" style="width:${s}px;height:${s}px;"/>`;
   }
@@ -182,8 +251,9 @@ function renderAvatarCara(av, i, size){
 }
 
 window.editarPerfil = function(id){
+  S._avTab = "personaje";
   const lista = perfiles();
-  const p = id ? lista.find(x=>x.id===id) : { id:null, nombre:"", av:"😀" };
+  const p = id ? lista.find(x=>x.id===id) : { id:null, nombre:"", av:"avt:" + JSON.stringify(personajeAleatorio()) };
   S._perfilEdit = JSON.parse(JSON.stringify(p));
   pintarEditorPerfil();
 };
@@ -201,16 +271,24 @@ function pintarEditorPerfil(){
       <button onclick="cerrarPerfil()" class="p-1 text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
     </div>
     <div class="flex flex-col items-center mb-4">
-      ${renderAvatarCara(p.av, 0, 84)}
-      <button onclick="document.getElementById('avFile').click()" class="mt-3 px-4 py-2 rounded-xl font-bold border-2 border-primary-container text-primary flex items-center gap-2 active:translate-y-1 transition-all">
-        <span class="material-symbols-outlined" style="font-size:18px;">photo_camera</span> Subir foto</button>
-      <input type="file" id="avFile" accept="image/*" class="hidden" onchange="subirFoto(event)"/>
+      ${renderAvatarCara(p.av, 0, 96)}
     </div>
     <input id="perfilNombre" placeholder="Nombre" maxlength="18" value="${(p.nombre||"").replace(/"/g,'&quot;')}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 mb-4 focus:border-primary-container focus:ring-0"/>
-    <p class="text-on-surface-variant text-sm font-bold mb-2">O elige un emoji</p>
-    <div class="grid grid-cols-6 gap-2 mb-4">
-      ${AVATARES.map(e=>`<button onclick="elegirAvatar('${e}')" class="aspect-square rounded-xl flex items-center justify-center text-2xl border-2 ${p.av===e?"border-primary-container bg-primary-fixed":"border-outline-variant"} active:scale-90 transition-transform">${e}</button>`).join("")}
+    <div class="flex gap-2 mb-4">
+      ${[["personaje","Personaje","face"],["emoji","Emoji","mood"],["foto","Foto","photo_camera"]].map(([id,txt,ic])=>`
+        <button onclick="S._avTab='${id}';pintarEditorPerfil()" class="flex-1 py-2.5 rounded-xl font-bold text-sm border-2 flex items-center justify-center gap-1 transition-all active:translate-y-1 ${(S._avTab||"personaje")===id?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">
+          <span class="material-symbols-outlined" style="font-size:17px;">${ic}</span>${txt}</button>`).join("")}
     </div>
+    ${(S._avTab||"personaje")==="personaje" ? editorPersonaje(p) : ""}
+    ${(S._avTab||"personaje")==="emoji" ? `<div class="grid grid-cols-6 gap-2 mb-4">
+      ${AVATARES.map(e=>`<button onclick="elegirAvatar('${e}')" class="aspect-square rounded-xl flex items-center justify-center text-2xl border-2 ${p.av===e?"border-primary-container bg-primary-fixed":"border-outline-variant"} active:scale-90 transition-transform">${e}</button>`).join("")}
+    </div>` : ""}
+    ${(S._avTab||"personaje")==="foto" ? `<div class="text-center mb-4">
+      <button onclick="document.getElementById('avFile').click()" class="w-full py-3.5 rounded-xl font-bold border-2 border-primary-container text-primary flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+        <span class="material-symbols-outlined">photo_camera</span> Elegir foto del dispositivo</button>
+      <input type="file" id="avFile" accept="image/*" class="hidden" onchange="subirFoto(event)"/>
+      <p class="text-on-surface-variant text-xs mt-2">La foto se guarda solo en este dispositivo.</p>
+    </div>` : ""}
     <div class="grid gap-2">
       <button onclick="guardarPerfilEdit()" class="w-full bg-primary-container text-white py-3.5 rounded-xl font-bold active-btn-press transition-all" style="box-shadow:0 4px 0 0 #21005e;">Guardar</button>
       ${p.id?`<button onclick="borrarPerfil('${p.id}')" class="w-full py-3 rounded-xl font-bold text-error border-2 border-outline-variant active:translate-y-1 transition-all">Eliminar jugador</button>`:""}
@@ -218,6 +296,52 @@ function pintarEditorPerfil(){
   </div>`;
   document.body.appendChild(modal);
 }
+
+function cfgActual(p){
+  if(p.av && typeof p.av === "string" && p.av.startsWith("avt:")){
+    try { return JSON.parse(p.av.slice(4)); } catch(e){}
+  }
+  return personajeDefecto();
+}
+
+function editorPersonaje(p){
+  const c = cfgActual(p);
+  const pelosCol = ["#1a1a1a","#3b2a1e","#7a4a20","#c9a227","#b03a2e","#5B3FA8","#e8e8f0"];
+  const fila = (titulo, items, campo, render) => `
+    <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mt-3 mb-1.5">${titulo}</p>
+    <div class="flex gap-2 overflow-x-auto pb-1">
+      ${items.map((it,i)=>`<button onclick="setPersonaje('${campo}',${typeof it === "string" ? `'${it}'` : i})" class="flex-shrink-0 rounded-xl border-2 p-1 transition-all active:scale-90 ${(c[campo]===(typeof it==="string"?it:i))?"border-primary-container bg-primary-fixed":"border-outline-variant"}">${render(it,i)}</button>`).join("")}
+    </div>`;
+  return `<div class="mb-4">
+    <button onclick="dadoPersonaje()" class="w-full py-2.5 rounded-xl font-bold border-2 border-outline-variant text-on-surface-variant flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+      <span class="material-symbols-outlined" style="font-size:18px;">casino</span> Sorpréndeme</button>
+    ${fila("Cara", CARAS, "cara", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,cara:i},38)}</span>`)}
+    ${fila("Pelo y gorros", PELOS, "pelo", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,pelo:i},38)}</span>`)}
+    ${fila("Color de pelo", pelosCol, "colorPelo", (it)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${it}"></span>`)}
+    ${fila("Piel", PIELES, "piel", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${PIELES[i]}"></span>`)}
+    ${fila("Camiseta", CAMISAS, "camisa", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${CAMISAS[i]}"></span>`)}
+    ${fila("Extras", EXTRAS, "extra", (it,i)=>`<span style="display:block;width:38px;height:38px;">${personajeSVG({...c,extra:i},38)}</span>`)}
+    ${fila("Fondo", FONDOS, "fondo", (it,i)=>`<span style="display:block;width:30px;height:30px;border-radius:8px;background:${FONDOS[i]}"></span>`)}
+  </div>`;
+}
+
+window.setPersonaje = function(campo, valor){
+  const el = document.getElementById("perfilNombre");
+  if(el) S._perfilEdit.nombre = el.value;
+  const c = cfgActual(S._perfilEdit);
+  c[campo] = valor;
+  S._perfilEdit.av = "avt:" + JSON.stringify(c);
+  FX.tone(760,0.04,"triangle",0.06);
+  pintarEditorPerfil();
+};
+
+window.dadoPersonaje = function(){
+  const el = document.getElementById("perfilNombre");
+  if(el) S._perfilEdit.nombre = el.value;
+  S._perfilEdit.av = "avt:" + JSON.stringify(personajeAleatorio());
+  FX.tone(880,0.08,"triangle",0.1); vibrate(20);
+  pintarEditorPerfil();
+};
 
 window.cerrarPerfil = function(){ const m=document.getElementById("perfilModal"); if(m) m.remove(); };
 window.guardarPerfilEdit = function(){

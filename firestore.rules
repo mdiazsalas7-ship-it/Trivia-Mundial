@@ -30,7 +30,7 @@ service cloud.firestore {
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() <= 18
         && request.resource.data.emoji is string
-        && request.resource.data.emoji.size() <= 8
+        && request.resource.data.emoji.size() <= 200
         && request.resource.data.estrellas is number
         && request.resource.data.estrellas >= 0
         && request.resource.data.estrellas <= 60

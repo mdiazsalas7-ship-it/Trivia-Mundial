@@ -43,7 +43,7 @@ window.renderOnlineMenu = function(){
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
       <p class="font-bold mb-3">Tu nombre y avatar</p>
       <div class="flex items-center gap-3">
-        <button onclick="elegirEmojiOnline()" class="w-14 h-14 rounded-full border-2 border-primary-container flex items-center justify-center text-3xl flex-shrink-0 active:scale-90 transition-transform" id="onAvBtn">${localStorage.getItem("tm_avatar")||"😀"}</button>
+        <button onclick="elegirEmojiOnline()" class="w-14 h-14 rounded-full border-2 border-primary-container flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden active:scale-90 transition-transform" id="onAvBtn">${avOnline()}</button>
         <input id="onName" placeholder="Ej. Abuela Rosa" maxlength="18" value="${localStorage.getItem("tm_name")||""}" class="flex-1 border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
       </div>
       <p class="text-on-surface-variant text-xs mt-2">Toca el círculo para cambiar tu emoji</p>
@@ -59,13 +59,25 @@ window.renderOnlineMenu = function(){
   </main>`;
 };
 
+function avOnline(){
+  const guardado = localStorage.getItem("tm_avatar");
+  if(guardado && guardado.startsWith("avt:")) return renderAvatarCara(guardado, 0, 52);
+  const yo = (typeof perfilActivo === "function") && perfilActivo();
+  if(yo && yo.av && String(yo.av).startsWith("avt:")) return renderAvatarCara(yo.av, 0, 52);
+  return guardado || "😀";
+}
+
 const EMOJIS_ONLINE = ["😀","😎","🤓","🥳","😺","🐶","🦊","🐼","🦁","🐨","🐵","🦄","🐸","🐯","🐧","🦖","🤖","👽","🦉","🐙","🍕","⚽","🎸","🚀","🌟","🔥","🎯","👑","🎩","🦸","🧙","🧠"];
 window.elegirEmojiOnline = function(){
   const m = document.createElement("div");
   m.className = "fixed inset-0 z-[9998] flex items-center justify-center p-4";
   m.style.background = "rgba(0,0,0,.6)";
   m.innerHTML = `<div class="bg-surface-container border-2 border-outline-variant rounded-3xl p-5 w-full max-w-sm" style="box-shadow:0 12px 40px rgba(0,0,0,.6)">
-    <p class="font-display font-extrabold text-xl mb-4">Elige tu emoji</p>
+    <p class="font-display font-extrabold text-xl mb-3">Tu avatar en línea</p>
+    ${(typeof perfilActivo === "function" && perfilActivo() && String(perfilActivo().av).startsWith("avt:")) ? `
+      <button onclick="usarMiPersonaje()" class="w-full mb-4 py-2.5 rounded-xl font-bold border-2 border-primary-container text-primary flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+        <span style="display:inline-block;width:28px;height:28px;">${renderAvatarCara(perfilActivo().av,0,28)}</span> Usar mi personaje</button>` : ""}
+    <p class="text-on-surface-variant text-sm font-bold mb-2">O elige un emoji</p>
     <div class="grid grid-cols-6 gap-2">
       ${EMOJIS_ONLINE.map(e=>`<button onclick="ponerEmoji('${e}')" class="aspect-square rounded-xl flex items-center justify-center text-2xl border-2 border-outline-variant active:scale-90 transition-transform">${e}</button>`).join("")}
     </div></div>`;
@@ -73,6 +85,13 @@ window.elegirEmojiOnline = function(){
   m.id = "emojiModal";
   document.body.appendChild(m);
 };
+window.usarMiPersonaje = function(){
+  const yo = perfilActivo();
+  if(yo) localStorage.setItem("tm_avatar", yo.av);
+  const btn = document.getElementById("onAvBtn"); if(btn) btn.innerHTML = avOnline();
+  const m = document.getElementById("emojiModal"); if(m) m.remove();
+};
+
 window.ponerEmoji = function(e){
   localStorage.setItem("tm_avatar", e);
   const btn = document.getElementById("onAvBtn"); if(btn) btn.textContent = e;
@@ -174,7 +193,7 @@ function paintLobby(){
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
       <p class="font-bold mb-3">En la sala (${r.jugadores.length})</p>
       ${r.jugadores.map((j,i)=>`<div class="flex items-center gap-3 py-2 border-b-2 border-outline-variant last:border-0">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center text-2xl flex-shrink-0" style="background:#111740">${j.av || j.nombre.charAt(0).toUpperCase()}</div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden" style="background:#111740">${String(j.av||"").startsWith("avt:")?renderAvatarCara(j.av,0,40):(j.av||j.nombre.charAt(0).toUpperCase())}</div>
         <span class="font-bold flex-1">${j.nombre}${j.id===O.me?" (tú)":""}</span>
         ${j.id===r.host?'<span class="text-xs font-bold bg-primary-fixed text-primary px-2 py-1 rounded-full">Anfitrión</span>':""}
       </div>`).join("")}
@@ -368,7 +387,7 @@ function paintEsperando(){
       <p class="text-on-surface-variant mt-1">Esperando a los demás… <span id="oClk">${left}</span> s</p>
       <p class="font-display font-extrabold text-3xl text-primary mt-4">${hechas} / ${total}</p>
       <div class="flex flex-wrap justify-center gap-2 mt-4">
-        ${r.jugadores.map(j=>`<span class="px-3 py-1.5 rounded-full text-sm font-bold border-2 flex items-center gap-1 ${r.respuestas && r.respuestas[j.id] ? "border-success text-success" : "border-outline-variant text-on-surface-variant"}"><span>${j.av||"🙂"}</span>${j.nombre}</span>`).join("")}
+        ${r.jugadores.map(j=>`<span class="px-3 py-1.5 rounded-full text-sm font-bold border-2 flex items-center gap-1 ${r.respuestas && r.respuestas[j.id] ? "border-success text-success" : "border-outline-variant text-on-surface-variant"}"><span style="display:inline-block;width:20px;height:20px;">${String(j.av||"").startsWith("avt:")?renderAvatarCara(j.av,0,20):(j.av||"🙂")}</span>${j.nombre}</span>`).join("")}
       </div>
     </div>
     ${hostTools()}
@@ -441,7 +460,7 @@ function paintRonda(){
         <div class="flex items-center gap-2 min-w-0">
           <span class="w-6 text-center font-display font-extrabold ${i===0?"text-cat-historia":"text-on-surface-variant"}">${i+1}</span>
           <span class="material-symbols-outlined msf" style="font-size:17px;color:${p.ultimo?.ok?"#37D399":(p.ultimo?.sin?"#6F6A92":"#FF6B6B")};">${p.ultimo?.ok?"check_circle":(p.ultimo?.sin?"schedule":"cancel")}</span>
-          <span class="text-lg">${p.av||"🙂"}</span>
+          <span style="display:inline-block;width:24px;height:24px;">${String(p.av||"").startsWith("avt:")?renderAvatarCara(p.av,0,24):(p.av||"🙂")}</span>
           <span class="font-bold truncate">${p.nombre}${p.id===O.me?" (tú)":""}</span>
         </div>
         <div class="text-right flex-shrink-0">
@@ -490,7 +509,7 @@ function paintEnd(){
         ${s.map((p,i)=>`<div class="flex items-center justify-between py-3 border-b-2 border-outline-variant last:border-0">
           <div class="flex items-center gap-3">
             <span class="w-6 text-center font-display font-extrabold" style="color:${i<3?medals[i]:"#6F6A92"}">${i+1}</span>
-            <span class="text-2xl">${p.av||"🙂"}</span>
+            <span style="display:inline-block;width:34px;height:34px;">${String(p.av||"").startsWith("avt:")?renderAvatarCara(p.av,0,34):(p.av||"🙂")}</span>
             <span class="font-bold">${p.nombre}${p.id===O.me?" (tú)":""}</span></div>
           <span class="font-display font-extrabold text-primary">${p.pts} pts</span></div>`).join("")}
       </div>
@@ -508,7 +527,7 @@ function scoreStrip(){
   const orden = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   return `<div class="flex gap-2 overflow-x-auto pb-1">
     ${orden.map((j)=>`<div class="flex-shrink-0 px-3 py-2 rounded-xl border-2 flex items-center gap-2 ${j.id===O.me?"border-primary-container bg-primary-fixed":"border-outline-variant bg-surface-container"}">
-      <span class="text-xl">${j.av||"🙂"}</span>
+      <span class="text-xl" style="display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;">${String(j.av||"").startsWith("avt:")?renderAvatarCara(j.av,0,26):(j.av||"🙂")}</span>
       <div><p class="text-xs font-bold ${j.id===O.me?"text-primary":"text-on-surface-variant"}">${j.nombre}${j.id===O.me?" (tú)":""}</p>
       <p class="font-display font-extrabold text-lg leading-tight">${j.pts}</p></div></div>`).join("")}
   </div>`;
