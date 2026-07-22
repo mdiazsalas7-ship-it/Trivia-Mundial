@@ -20,6 +20,30 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    match /viajeros/{codigo} {
+      // El ranking mundial es público de lectura.
+      allow read: if true;
+
+      // Solo se aceptan documentos ligeros y con la forma esperada.
+      // Nunca se guardan fotos: el campo emoji es texto corto.
+      allow create, update: if codigo.size() == 8
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() <= 18
+        && request.resource.data.emoji is string
+        && request.resource.data.emoji.size() <= 8
+        && request.resource.data.estrellas is number
+        && request.resource.data.estrellas >= 0
+        && request.resource.data.estrellas <= 60
+        && request.resource.data.puntos is number
+        && request.resource.data.puntos >= 0
+        && request.resource.data.puntos <= 100000
+        && request.resource.data.etapa is number
+        && request.resource.data.etapa >= 0
+        && request.resource.data.etapa <= 20;
+
+      allow delete: if false;
+    }
+
     // Todo lo demás queda cerrado.
     match /{document=**} {
       allow read, write: if false;

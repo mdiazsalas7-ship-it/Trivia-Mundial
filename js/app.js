@@ -97,6 +97,37 @@ function probarMusica(btn){
   setTimeout(()=>{ FX.music.para(); render.settings(); }, 12000);
 }
 
+function switchSync(){
+  if(!window.SYNC) return alert("La sincronización necesita conexión a internet.");
+  const nuevo = !SYNC.activo();
+  if(nuevo && !perfilActivo()) return alert("Crea primero un jugador en Ajustes.");
+  SYNC.activar(nuevo);
+  render.settings();
+  if(nuevo) FX.good(0);
+}
+
+function copiarCodigo(){
+  const cod = SYNC.codigoDe(perfilActivo().id);
+  if(navigator.clipboard) navigator.clipboard.writeText(cod).then(()=>alert("Código copiado: " + cod)).catch(()=>alert("Tu código es: " + cod));
+  else alert("Tu código es: " + cod);
+}
+
+function recuperarViaje(){
+  const cod = prompt("Escribe el código de viajero (8 caracteres):");
+  if(!cod) return;
+  SYNC.recuperar(cod).then(datos => {
+    if(!datos) return alert("No encontramos ningún viaje con ese código.");
+    const yo = perfilActivo();
+    if(!yo) return alert("Crea primero un jugador.");
+    if(!confirm(`Se encontró el viaje de ${datos.nombre} (${datos.estrellas||0} estrellas). ¿Cargarlo en el perfil ${yo.nombre}? Se reemplazará su progreso actual.`)) return;
+    guardarMundo({ max: datos.etapa||0, estrellas: datos.estrellasPorEtapa||{}, mejor: datos.mejorPorEtapa||{} }, yo.id);
+    SYNC.asociar(yo.id, cod.trim().toUpperCase());
+    FX.fanfare(); burstConfetti(50);
+    alert("¡Viaje recuperado!");
+    render.settings();
+  });
+}
+
 function switchSonido(){ FX.toggle(); render.settings(); }
 function switchMusica(){
   const on = FX.music.toggle();
@@ -120,7 +151,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "3.0";
+const APP_VER = "3.1";
 /* ---------- PERFILES DE JUGADORES ---------- */
 function perfiles(){
   try { return JSON.parse(localStorage.getItem("tm_perfiles")) || []; } catch(e){ return []; }
@@ -339,6 +370,8 @@ window.verCategoria = function(cat){
 };
 
 render.board = () => {
+  if(S._tabRank === undefined) S._tabRank = "familia";
+  if(S._tabRank === "mundial") return boardMundial();
   const lista = perfiles();
   const filas = lista.map(p => {
     const prog = progresoMundo(p.id);
@@ -347,8 +380,9 @@ render.board = () => {
   const medals = ["#DD9414","#9ca3af","#b45309"];
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
-    <h2 class="font-display font-bold text-2xl mb-1">Ranking mundial</h2>
-    <p class="text-on-surface-variant mb-5">Los mejores viajeros de la Vuelta al Mundo. Las partidas en grupo no puntúan aquí.</p>
+    <h2 class="font-display font-bold text-2xl mb-1">Ranking</h2>
+    <p class="text-on-surface-variant mb-4">Solo cuenta la Vuelta al Mundo. Las partidas en grupo no puntúan.</p>
+    ${tabsRanking("familia")}
     ${filas.length === 0 || filas.every(f=>f.puntos===0)
       ? `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-8 text-center block-shadow-sm">
           <span class="material-symbols-outlined text-primary" style="font-size:44px;">emoji_events</span>
@@ -380,6 +414,65 @@ render.board = () => {
         </div>`}
   </main>${bottomNav("board")}`;
 };
+
+function tabsRanking(activa){
+  return `<div class="flex gap-2 mb-5">
+    <button onclick="S._tabRank='familia';render.board()" class="flex-1 py-2.5 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${activa==="familia"?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">En este dispositivo</button>
+    <button onclick="S._tabRank='mundial';render.board()" class="flex-1 py-2.5 rounded-xl font-bold border-2 transition-all active:translate-y-1 ${activa==="mundial"?"bg-cat-cultura text-white border-cat-cultura":"border-outline-variant text-on-surface-variant"}">Mundial</button>
+  </div>`;
+}
+
+function boardMundial(){
+  const medals = ["#DD9414","#9ca3af","#b45309"];
+  app.innerHTML = `${topBar({back:"go('home')"})}
+  <main class="flex-1 px-5 py-6 pb-32 max-w-lg mx-auto w-full">
+    <h2 class="font-display font-bold text-2xl mb-1">Ranking</h2>
+    <p class="text-on-surface-variant mb-4">Viajeros de todo el mundo. Solo se comparten nombre, emoji y puntos.</p>
+    ${tabsRanking("mundial")}
+    <div id="rankGlobal">
+      <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-8 text-center block-shadow-sm">
+        <span class="material-symbols-outlined text-primary urgent" style="font-size:36px;">travel_explore</span>
+        <p class="text-on-surface-variant mt-2">Cargando el ranking mundial…</p>
+      </div>
+    </div>
+  </main>${bottomNav("board")}`;
+
+  if(!window.SYNC){ return pintarRankError("El ranking mundial no está disponible sin conexión."); }
+  const misCodigos = Object.values(SYNC.mapa());
+  SYNC.ranking(50).then(filas => {
+    const cont = document.getElementById("rankGlobal");
+    if(!cont) return;
+    if(!filas) return pintarRankError("No pudimos cargar el ranking. Revisa tu conexión.");
+    if(filas.length === 0) return pintarRankError("Aún no hay viajeros en el ranking. ¡Sé el primero!");
+    cont.innerHTML = `<div class="grid gap-2.5">
+      ${filas.map((f,i)=>{
+        const mio = misCodigos.includes(f.codigo);
+        return `<div class="bg-surface-container border-2 ${mio?"border-primary-container":(i===0?"border-cat-historia":"border-outline-variant")} rounded-2xl p-3.5 flex items-center gap-3 block-shadow-sm">
+          <span class="w-7 text-center font-display font-extrabold text-lg" style="color:${i<3?medals[i]:"#6F6A92"}">${i+1}</span>
+          <span class="text-3xl">${f.emoji || "🙂"}</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-bold truncate">${f.nombre}${mio?' <span class="text-xs text-primary">(tú)</span>':""}</p>
+            <p class="text-on-surface-variant text-sm">Etapa ${Math.min((f.etapa||0)+1, ETAPAS.length)} de ${ETAPAS.length}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-display font-extrabold text-primary">${(f.puntos||0).toLocaleString("es")}</p>
+            <p class="text-sm flex items-center gap-0.5 justify-end"><span class="material-symbols-outlined msf text-cat-historia" style="font-size:15px;">star</span>${f.estrellas||0}</p>
+          </div></div>`;
+      }).join("")}</div>
+      ${!SYNC.activo()?`<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 mt-4 text-center block-shadow-sm">
+        <p class="font-bold">No estás compitiendo aún</p>
+        <p class="text-on-surface-variant text-sm mt-1 mb-3">Activa la sincronización en Ajustes para aparecer en el ranking.</p>
+        <button onclick="go('settings')" class="bg-primary-container text-white px-5 py-2.5 rounded-xl font-bold block-shadow-primary active-btn-press transition-all">Ir a Ajustes</button>
+      </div>`:""}`;
+  });
+}
+
+function pintarRankError(msg){
+  const cont = document.getElementById("rankGlobal");
+  if(cont) cont.innerHTML = `<div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-8 text-center block-shadow-sm">
+    <span class="material-symbols-outlined text-on-surface-variant" style="font-size:36px;">cloud_off</span>
+    <p class="text-on-surface-variant mt-2">${msg}</p></div>`;
+}
 
 render.settings = () => {
   app.innerHTML = `${topBar({back:"go('home')"})}
@@ -427,6 +520,24 @@ render.settings = () => {
           <span class="material-symbols-outlined">play_circle</span> Escuchar una muestra</button>
       </div>
       <p class="text-on-surface-variant text-sm mt-3">La música suena durante las partidas, muy suave para no tapar las conversaciones.</p>
+    </div>
+    <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
+      <p class="font-bold mb-1">Ranking mundial y respaldo</p>
+      <p class="text-on-surface-variant text-sm mb-3">Comparte tu progreso para competir en el ranking mundial y poder recuperarlo en otro dispositivo. <span class="text-primary font-bold">Tus fotos nunca se envían</span>: solo viajan nombre, emoji, estrellas y puntos.</p>
+      <button onclick="switchSync()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${(window.SYNC&&SYNC.activo())?"bg-cat-cultura text-white border-cat-cultura":"border-outline-variant text-on-surface-variant"}">
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined">${(window.SYNC&&SYNC.activo())?"cloud_done":"cloud_off"}</span> Sincronizar mi progreso</span>
+        <span class="text-sm">${(window.SYNC&&SYNC.activo())?"Activado":"Desactivado"}</span></button>
+      ${(window.SYNC&&SYNC.activo()&&perfilActivo())?`
+        <div class="mt-3 rounded-xl border-2 border-outline-variant p-3">
+          <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mb-1">Código de ${perfilActivo().nombre}</p>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-2xl tracking-widest flex-1">${SYNC.codigoDe(perfilActivo().id)}</span>
+            <button onclick="copiarCodigo()" class="p-2 rounded-lg border-2 border-outline-variant active:translate-y-1 transition-all"><span class="material-symbols-outlined" style="font-size:18px;">content_copy</span></button>
+          </div>
+          <p class="text-on-surface-variant text-xs mt-2">Guárdalo: con él recuperas tu viaje en otro celular.</p>
+        </div>
+        <button onclick="recuperarViaje()" class="mt-3 w-full py-3 rounded-xl font-bold border-2 border-outline-variant text-on-surface-variant flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+          <span class="material-symbols-outlined">restore</span> Recuperar viaje con un código</button>`:""}
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
       <p class="font-bold mb-1">Instalar en este dispositivo</p>
@@ -984,6 +1095,7 @@ function etapaSuperada(){
   const ultima = S.etapa >= ETAPAS.length - 1;
   if(!ultima) p.max = Math.max(p.max, S.etapa + 1);
   guardarMundo(p, yo && yo.id);
+  if(window.SYNC && SYNC.activo()) SYNC.subir(yo, p);
   app.innerHTML = `${topBar()}
   <main class="flex-1 px-5 py-10 pb-32 max-w-lg mx-auto w-full">
     <div class="bg-surface-container border-2 border-outline-variant rounded-[28px] p-7 text-center block-shadow-sm animate-pop">

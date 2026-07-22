@@ -135,3 +135,23 @@ El juego trae una música generada por código como respaldo. Para usar una pist
 5. Añade `./assets/music.mp3` a la lista `SHELL` de `sw.js` si quieres que también funcione sin conexión.
 
 Guarda la factura o el certificado de licencia de la pista: las tiendas de apps pueden pedirlo.
+
+
+## Sincronización en la nube (ranking mundial)
+
+El progreso de la **Vuelta al Mundo** puede sincronizarse para competir en un ranking mundial y recuperarlo en otro dispositivo. Se activa en **Ajustes → Ranking mundial y respaldo**.
+
+**Qué se envía y qué no:**
+
+| Se sincroniza | Se queda solo en el dispositivo |
+|---|---|
+| Nombre del jugador | **Fotos de perfil** (nunca salen del móvil) |
+| Emoji | Perfiles completos |
+| Estrellas y puntos | Partidas en grupo |
+| Etapa alcanzada | Ajustes de audio |
+
+Si un jugador usa foto, en el ranking mundial aparece con un emoji genérico.
+
+**Código de viajero:** al activar la sincronización, cada perfil recibe un código de 8 caracteres. Con ese código se recupera el viaje en otro celular desde *Recuperar viaje con un código*.
+
+**Configuración necesaria en Firebase:** vuelve a publicar `firestore.rules` (incluye la colección `viajeros`). Si el ranking aparece vacío, revisa en la consola de Firebase si pide crear un índice compuesto para `estrellas` + `puntos`; el código funciona igual sin él, ordenando en el cliente.
