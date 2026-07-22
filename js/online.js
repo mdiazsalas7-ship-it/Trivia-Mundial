@@ -41,8 +41,12 @@ window.renderOnlineMenu = function(){
     <h2 class="font-display font-bold text-2xl mb-1">Jugar en línea</h2>
     <p class="text-on-surface-variant mb-6">Todos responden a la vez desde su propio celular. El más rápido gana más puntos.</p>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-4">
-      <p class="font-bold mb-3">Tu nombre</p>
-      <input id="onName" placeholder="Ej. Abuela Rosa" maxlength="18" value="${localStorage.getItem("tm_name")||""}" class="w-full border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
+      <p class="font-bold mb-3">Tu nombre y avatar</p>
+      <div class="flex items-center gap-3">
+        <button onclick="elegirEmojiOnline()" class="w-14 h-14 rounded-full border-2 border-primary-container flex items-center justify-center text-3xl flex-shrink-0 active:scale-90 transition-transform" id="onAvBtn">${localStorage.getItem("tm_avatar")||"😀"}</button>
+        <input id="onName" placeholder="Ej. Abuela Rosa" maxlength="18" value="${localStorage.getItem("tm_name")||""}" class="flex-1 border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary-container focus:ring-0"/>
+      </div>
+      <p class="text-on-surface-variant text-xs mt-2">Toca el círculo para cambiar tu emoji</p>
     </div>
     <button onclick="createRoom()" class="w-full bg-primary-container text-white py-4 rounded-2xl font-display font-extrabold text-xl block-shadow-primary active-btn-press transition-all flex items-center justify-center gap-2 mb-4">
       <span class="material-symbols-outlined">add_circle</span> Crear sala</button>
@@ -53,6 +57,26 @@ window.renderOnlineMenu = function(){
     </div>
     <p id="onErr" class="text-error font-bold text-center mt-4"></p>
   </main>`;
+};
+
+const EMOJIS_ONLINE = ["😀","😎","🤓","🥳","😺","🐶","🦊","🐼","🦁","🐨","🐵","🦄","🐸","🐯","🐧","🦖","🤖","👽","🦉","🐙","🍕","⚽","🎸","🚀","🌟","🔥","🎯","👑","🎩","🦸","🧙","🧠"];
+window.elegirEmojiOnline = function(){
+  const m = document.createElement("div");
+  m.className = "fixed inset-0 z-[9998] flex items-center justify-center p-4";
+  m.style.background = "rgba(0,0,0,.6)";
+  m.innerHTML = `<div class="bg-surface-container border-2 border-outline-variant rounded-3xl p-5 w-full max-w-sm" style="box-shadow:0 12px 40px rgba(0,0,0,.6)">
+    <p class="font-display font-extrabold text-xl mb-4">Elige tu emoji</p>
+    <div class="grid grid-cols-6 gap-2">
+      ${EMOJIS_ONLINE.map(e=>`<button onclick="ponerEmoji('${e}')" class="aspect-square rounded-xl flex items-center justify-center text-2xl border-2 border-outline-variant active:scale-90 transition-transform">${e}</button>`).join("")}
+    </div></div>`;
+  m.onclick = (ev)=>{ if(ev.target===m) m.remove(); };
+  m.id = "emojiModal";
+  document.body.appendChild(m);
+};
+window.ponerEmoji = function(e){
+  localStorage.setItem("tm_avatar", e);
+  const btn = document.getElementById("onAvBtn"); if(btn) btn.textContent = e;
+  const m = document.getElementById("emojiModal"); if(m) m.remove();
 };
 
 function readName(){
@@ -70,7 +94,7 @@ window.createRoom = async function(){
     for(let i=0;i<5;i++){ const s = await getDoc(roomRef(code)); if(!s.exists()) break; code = CODE(); }
     await setDoc(roomRef(code), {
       creada: now(), host: O.me, fase: "lobby",
-      jugadores: [{ id:O.me, nombre:name, pts:0, fifty:true }],
+      jugadores: [{ id:O.me, nombre:name, av:(localStorage.getItem("tm_avatar")||"😀"), pts:0, fifty:true }],
       totalQ: 10, segundos: 20,
       orden: [], turno: 0, hechas: 0, mano: [], carta: null,
       usadas: [], respuestas: {}, oculta50: {}, deadline: 0, bolsa: []
@@ -91,7 +115,7 @@ window.joinRoom = async function(){
     if(r.fase !== "lobby"){ if(err) err.textContent = "Esa partida ya comenzó."; return; }
     if(r.jugadores.length >= 8){ if(err) err.textContent = "La sala está llena (máximo 8)."; return; }
     O.me = RID(); O.isHost = false; O.code = code;
-    await updateDoc(roomRef(code), { jugadores: [...r.jugadores, { id:O.me, nombre:name, pts:0, fifty:true }] });
+    await updateDoc(roomRef(code), { jugadores: [...r.jugadores, { id:O.me, nombre:name, av:(localStorage.getItem("tm_avatar")||"😀"), pts:0, fifty:true }] });
     listen();
   } catch(e){ showErr(e); }
 };
@@ -150,7 +174,7 @@ function paintLobby(){
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mb-5">
       <p class="font-bold mb-3">En la sala (${r.jugadores.length})</p>
       ${r.jugadores.map((j,i)=>`<div class="flex items-center gap-3 py-2 border-b-2 border-outline-variant last:border-0">
-        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${Object.values(CATS)[i%6].color}">${j.nombre.charAt(0).toUpperCase()}</div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-2xl flex-shrink-0" style="background:#111740">${j.av || j.nombre.charAt(0).toUpperCase()}</div>
         <span class="font-bold flex-1">${j.nombre}${j.id===O.me?" (tú)":""}</span>
         ${j.id===r.host?'<span class="text-xs font-bold bg-primary-fixed text-primary px-2 py-1 rounded-full">Anfitrión</span>':""}
       </div>`).join("")}
@@ -224,7 +248,7 @@ window.startOnline = async function(){
       ...(()=>{ const x = manoConBolsa(orden, nuevaBolsaOnline(), []); return { mano:x.mano, bolsa:x.bolsa }; })(),
       carta:null,
       respuestas:{}, oculta50:{},
-      jugadores: O.room.jugadores.map(j=>({ id:j.id, nombre:j.nombre, pts:0, fifty:true }))
+      jugadores: O.room.jugadores.map(j=>({ id:j.id, nombre:j.nombre, av:j.av||"😀", pts:0, fifty:true }))
     });
   } catch(e){ showErr(e); }
 };
@@ -344,7 +368,7 @@ function paintEsperando(){
       <p class="text-on-surface-variant mt-1">Esperando a los demás… <span id="oClk">${left}</span> s</p>
       <p class="font-display font-extrabold text-3xl text-primary mt-4">${hechas} / ${total}</p>
       <div class="flex flex-wrap justify-center gap-2 mt-4">
-        ${r.jugadores.map(j=>`<span class="px-3 py-1.5 rounded-full text-sm font-bold border-2 ${r.respuestas && r.respuestas[j.id] ? "border-success text-success" : "border-outline-variant text-on-surface-variant"}">${j.nombre}</span>`).join("")}
+        ${r.jugadores.map(j=>`<span class="px-3 py-1.5 rounded-full text-sm font-bold border-2 flex items-center gap-1 ${r.respuestas && r.respuestas[j.id] ? "border-success text-success" : "border-outline-variant text-on-surface-variant"}"><span>${j.av||"🙂"}</span>${j.nombre}</span>`).join("")}
       </div>
     </div>
     ${hostTools()}
@@ -417,6 +441,7 @@ function paintRonda(){
         <div class="flex items-center gap-2 min-w-0">
           <span class="w-6 text-center font-display font-extrabold ${i===0?"text-cat-historia":"text-on-surface-variant"}">${i+1}</span>
           <span class="material-symbols-outlined msf" style="font-size:17px;color:${p.ultimo?.ok?"#37D399":(p.ultimo?.sin?"#6F6A92":"#FF6B6B")};">${p.ultimo?.ok?"check_circle":(p.ultimo?.sin?"schedule":"cancel")}</span>
+          <span class="text-lg">${p.av||"🙂"}</span>
           <span class="font-bold truncate">${p.nombre}${p.id===O.me?" (tú)":""}</span>
         </div>
         <div class="text-right flex-shrink-0">
@@ -464,7 +489,8 @@ function paintEnd(){
       <div class="text-left">
         ${s.map((p,i)=>`<div class="flex items-center justify-between py-3 border-b-2 border-outline-variant last:border-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${i<3?medals[i]:"#2B3160"}">${i+1}</div>
+            <span class="w-6 text-center font-display font-extrabold" style="color:${i<3?medals[i]:"#6F6A92"}">${i+1}</span>
+            <span class="text-2xl">${p.av||"🙂"}</span>
             <span class="font-bold">${p.nombre}${p.id===O.me?" (tú)":""}</span></div>
           <span class="font-display font-extrabold text-primary">${p.pts} pts</span></div>`).join("")}
       </div>
@@ -481,9 +507,10 @@ function scoreStrip(){
   const r = O.room;
   const orden = [...r.jugadores].sort((a,b)=>b.pts-a.pts);
   return `<div class="flex gap-2 overflow-x-auto pb-1">
-    ${orden.map((j)=>`<div class="flex-shrink-0 px-3 py-2 rounded-xl border-2 ${j.id===O.me?"border-primary-container bg-primary-fixed":"border-outline-variant bg-surface-container"}">
-      <p class="text-xs font-bold ${j.id===O.me?"text-primary":"text-on-surface-variant"}">${j.nombre}${j.id===O.me?" (tú)":""}</p>
-      <p class="font-display font-extrabold text-lg">${j.pts}</p></div>`).join("")}
+    ${orden.map((j)=>`<div class="flex-shrink-0 px-3 py-2 rounded-xl border-2 flex items-center gap-2 ${j.id===O.me?"border-primary-container bg-primary-fixed":"border-outline-variant bg-surface-container"}">
+      <span class="text-xl">${j.av||"🙂"}</span>
+      <div><p class="text-xs font-bold ${j.id===O.me?"text-primary":"text-on-surface-variant"}">${j.nombre}${j.id===O.me?" (tú)":""}</p>
+      <p class="font-display font-extrabold text-lg leading-tight">${j.pts}</p></div></div>`).join("")}
   </div>`;
 }
 

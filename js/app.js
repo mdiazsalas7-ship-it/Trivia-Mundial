@@ -120,7 +120,67 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.5";
+const APP_VER = "2.6";
+const AVATARES = ["😀","😎","🤓","🥳","😺","🐶","🦊","🐼","🦁","🐨","🐵","🦄","🐸","🐯","🐧","🦖","🤖","👽","🦉","🐙","🍕","⚽","🎸","🚀","🌟","🔥","🎯","👑","🎩","🦸","🧙","🧠"];
+function avatarColor(i){ return Object.values(CATS)[i%6].color; }
+
+function renderAvatarCara(av, i, size){
+  const s = size || 40;
+  if(av && av.startsWith("data:")){
+    return `<img src="${av}" alt="" class="rounded-full object-cover" style="width:${s}px;height:${s}px;"/>`;
+  }
+  const emoji = av && !/^\d+$/.test(av) ? av : null;
+  return `<div class="rounded-full flex items-center justify-center flex-shrink-0" style="width:${s}px;height:${s}px;background:${emoji?"var(--tm-surface,#111740)":avatarColor(i)};font-size:${Math.round(s*0.55)}px;">${emoji || `<span class="text-white font-bold" style="font-size:${Math.round(s*0.4)}px">${i+1}</span>`}</div>`;
+}
+
+window.abrirAvatar = function(idx){
+  S._avEdit = idx;
+  const actual = (S._avatars && S._avatars[idx]) || "";
+  const modal = document.createElement("div");
+  modal.id = "avModal";
+  modal.className = "fixed inset-0 z-[9998] flex items-end sm:items-center justify-center p-4";
+  modal.style.background = "rgba(0,0,0,.6)";
+  modal.innerHTML = `<div class="bg-surface-container border-2 border-outline-variant rounded-3xl p-5 w-full max-w-sm max-h-[80vh] overflow-y-auto" style="box-shadow:0 12px 40px rgba(0,0,0,.6)">
+    <div class="flex justify-between items-center mb-4">
+      <p class="font-display font-extrabold text-xl">Elige tu avatar</p>
+      <button onclick="cerrarAvatar()" class="p-1 text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <button onclick="document.getElementById('avFile').click()" class="w-full mb-4 py-3 rounded-xl font-bold border-2 border-primary-container text-primary flex items-center justify-center gap-2 active:translate-y-1 transition-all">
+      <span class="material-symbols-outlined">photo_camera</span> Subir mi foto</button>
+    <input type="file" id="avFile" accept="image/*" class="hidden" onchange="subirFoto(event)"/>
+    <p class="text-on-surface-variant text-sm font-bold mb-2">O elige un emoji</p>
+    <div class="grid grid-cols-6 gap-2">
+      ${AVATARES.map(e=>`<button onclick="elegirAvatar('${e}')" class="aspect-square rounded-xl flex items-center justify-center text-2xl border-2 ${actual===e?"border-primary-container bg-primary-fixed":"border-outline-variant"} active:scale-90 transition-transform">${e}</button>`).join("")}
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+};
+window.cerrarAvatar = function(){ const m = document.getElementById("avModal"); if(m) m.remove(); };
+window.elegirAvatar = function(e){
+  S._avatars = S._avatars || [];
+  S._avatars[S._avEdit] = e;
+  cerrarAvatar(); render.setup();
+};
+window.subirFoto = function(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // recortar a cuadrado y reducir para no ocupar memoria
+      const size = 128;
+      const c = document.createElement("canvas"); c.width = size; c.height = size;
+      const ctx = c.getContext("2d");
+      const lado = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-lado)/2, (img.height-lado)/2, lado, lado, 0, 0, size, size);
+      S._avatars = S._avatars || [];
+      S._avatars[S._avEdit] = c.toDataURL("image/jpeg", 0.8);
+      cerrarAvatar(); render.setup();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
 const render = {};
 
 render.home = () => {
@@ -429,6 +489,8 @@ function vidasHTML(){
 
 render.setup = () => {
   if(S._np===undefined) S._np=3;
+  if(!S._avatars){ try { S._avatars = JSON.parse(localStorage.getItem("tm_avatars")) || []; } catch(e){ S._avatars = []; } }
+  if(!S._names){ try { S._names = JSON.parse(localStorage.getItem("tm_nombres")) || []; } catch(e){ S._names = []; } }
   const est = Math.round(S._np * S.qPerPlayer * 0.7);
   app.innerHTML = `${topBar({back:"go('home')"})}
   <main class="flex-1 px-5 py-6 pb-10 max-w-lg mx-auto w-full">
@@ -440,7 +502,10 @@ render.setup = () => {
       </div>
       <div class="grid gap-3 mt-4">
         ${Array.from({length:S._np},(_,i)=>`<div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background:${Object.values(CATS)[i%6].color}">${i+1}</div>
+          <button onclick="abrirAvatar(${i})" class="relative active:scale-90 transition-transform flex-shrink-0" aria-label="Elegir avatar">
+            ${renderAvatarCara((S._avatars&&S._avatars[i])||String(i), i, 44)}
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary-container border-2 border-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-white" style="font-size:12px">edit</span></span>
+          </button>
           <input id="pname${i}" placeholder="Jugador ${i+1}" value="${S._names&&S._names[i]?S._names[i]:""}" oninput="S._names=S._names||[];S._names[${i}]=this.value" class="flex-1 border-2 border-outline-variant rounded-xl px-4 py-2.5 focus:border-primary-container focus:ring-0"/>
         </div>`).join("")}
       </div>
@@ -462,6 +527,8 @@ function startGame(){
     const el=document.getElementById("pname"+i);
     const v=el&&el.value.trim(); return v||("Jugador "+(i+1));
   });
+  S.avatars = Array.from({length:S._np},(_,i)=>(S._avatars && S._avatars[i]) || String(i));
+  try { localStorage.setItem("tm_avatars", JSON.stringify(S._avatars||[])); localStorage.setItem("tm_nombres", JSON.stringify(S._names||[])); } catch(e){}
   S.modo = 'grupo';
   S.bolsa = nuevaBolsa();
   if(FX.on && FX.music.on) FX.music.arranca();
@@ -503,7 +570,10 @@ render.deck = () => {
         ? `<p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Etapa ${S.etapa+1} · ${ETAPAS[S.etapa].n}</p>
            <h2 class="font-display font-bold text-2xl">Pregunta ${S.qDone+1} <span class="text-on-surface-variant">de ${S.qPerPlayer}</span></h2>`
         : `<p class="text-on-surface-variant font-bold text-sm uppercase tracking-wider">Partida en curso</p>
-           <h2 class="font-display font-bold text-2xl">Turno de: <span class="text-primary-container">${S.players[S.turn]}</span></h2>
+           <div class="flex items-center justify-center gap-2">
+             ${S.avatars?renderAvatarCara(S.avatars[S.turn], S.turn, 32):""}
+             <h2 class="font-display font-bold text-2xl">Turno de: <span class="text-primary-container">${S.players[S.turn]}</span></h2>
+           </div>
            <p class="text-on-surface-variant text-sm mt-1">Pregunta ${Math.floor(S.qDone/S.players.length)+1} de ${S.qPerPlayer}</p>`}
     </div>
     <div class="bg-surface-container-low border-2 border-outline-variant rounded-xl p-4 mb-5 text-center block-shadow-sm">
@@ -520,15 +590,6 @@ render.deck = () => {
   </main>`;
   FX.tone(700, 0.06, "triangle", 0.07);
   FX.tone(900, 0.06, "triangle", 0.06, 0.09);
-  if(isBot()){
-    document.querySelectorAll(".deal-in").forEach(b=>b.style.pointerEvents="none");
-    const aviso = document.createElement("p");
-    aviso.className = "text-center font-bold text-primary mt-5 urgent";
-    aviso.textContent = S.players[S.turn] + " está eligiendo su carta…";
-    document.querySelector("main")?.appendChild(aviso);
-    clearBot();
-    S.botTO = setTimeout(()=>{ throwCard(hand[Math.floor(Math.random()*hand.length)]); }, 1600);
-  }
 };
 
 function throwCard(qi){
@@ -586,29 +647,6 @@ function showQuestion(qi){
     </div>
   </main>`;
   setTimeout(()=>{ const el=document.getElementById("qcard"); if(el){ el.classList.add("card-flipped"); FX.flip(); } },120);
-  if(isBot()){
-    setTimeout(()=>{
-      document.querySelectorAll("#opts button").forEach(b=>{ b.style.pointerEvents="none"; });
-      const lf = document.getElementById("lifeline"); if(lf) lf.style.display = "none";
-      const opts = document.getElementById("opts");
-      if(opts){
-        const p = document.createElement("p");
-        p.className = "text-center font-bold text-on-surface-variant mt-3";
-        p.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:18px;">explore</span> ' + S.players[S.turn] + " está pensando…";
-        opts.parentNode.appendChild(p);
-      }
-    }, 900);
-    const acc = BOT_ACC[S._dif] || 0.68;
-    const piensa = 2200 + Math.random() * Math.min(6000, (S.timerSecs-4)*1000);
-    clearBot();
-    S.botTO = setTimeout(()=>{
-      const q2 = QS[qi];
-      let elige;
-      if(Math.random() < acc) elige = q2.a;
-      else { const malas = q2.o.map((_,k)=>k).filter(k=>k!==q2.a); elige = malas[Math.floor(Math.random()*malas.length)]; }
-      answer(elige, qi);
-    }, piensa + 900);
-  }
   setTimeout(()=>{
     S.timer=setInterval(()=>{
       S.left--;
@@ -673,36 +711,10 @@ function answer(j,qi){
   }
 }
 
-function showReto(qi,timeout){
-  const q=QS[qi];
+function showReto(qi, timeout){
   S.streak = 0;
   if(S.modo === 'mundo') return perderVida(qi, timeout);
   return showRebote(qi, timeout);
-  const r=RETOS[Math.floor(Math.random()*RETOS.length)];
-  if(timeout){ FX.bad(); shakeScreen(); vibrate(120); }
-  setTimeout(()=>FX.drum(), 250);
-  app.innerHTML = `${topBar({exit:true})}
-  <main class="flex-1 px-5 py-8 max-w-lg mx-auto w-full flex flex-col items-center">
-    <p class="font-bold text-error mb-1">${timeout?"¡Se acabó el tiempo!":"Incorrecto"}</p>
-    <p class="text-on-surface-variant mb-5">La respuesta era: <span class="font-bold text-on-surface">${q.o[q.a]}</span></p>
-    <div class="w-full bg-cat-historia rounded-[28px] border-4 border-white p-6 text-center relative overflow-hidden animate-pop glow" style="box-shadow:0 8px 0 0 #8a5a08;">
-      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(#fff 2px,transparent 2px);background-size:18px 18px;"></div>
-      <div class="relative z-10">
-        <span class="material-symbols-outlined text-white msf urgent" style="font-size:48px;">local_fire_department</span>
-        <p class="text-white/90 text-xs font-bold tracking-widest uppercase mt-1">Reto especial · 5 puntos</p>
-        <p class="text-white font-display font-extrabold text-2xl mt-3 leading-snug">${r}</p>
-      </div>
-    </div>
-    <p class="text-on-surface-variant text-sm mt-5 mb-3">${isBot()?S.players[S.turn]+" intenta cumplir el reto…":"El grupo decide si lo cumplió"}</p>
-    <div class="w-full grid gap-3 ${isBot()?"opacity-25 pointer-events-none":""}">
-      <button onclick="retoOk()" class="w-full bg-success text-white py-4 rounded-2xl font-bold text-lg active-btn-press transition-all" style="box-shadow:0 6px 0 0 #0f5340;">Lo cumplió (+5)</button>
-      <button onclick="nextTurn()" class="w-full bg-surface-container border-2 border-outline-variant py-3.5 rounded-2xl font-bold text-on-surface-variant block-shadow-sm active-btn-press transition-all">No lo cumplió</button>
-    </div>
-  </main>`;
-  if(isBot()){
-    clearBot();
-    S.botTO = setTimeout(()=>{ Math.random() < 0.5 ? retoOk() : nextTurn(); }, 2600);
-  }
 }
 
 function perderVida(qi, timeout){
@@ -786,8 +798,8 @@ function showRebote(qi, timeout){
     </div>
     <p class="text-center text-on-surface-variant mt-5 mb-3">¿Quién se anima a robar los puntos?</p>
     <div class="grid gap-2">
-      ${otros.map(o=>`<button onclick="roba(${o.i},${qi})" class="w-full py-3.5 px-4 rounded-xl font-bold border-2 border-outline-variant bg-surface-container flex items-center justify-between active:translate-y-1 transition-all block-shadow-sm">
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:20px;">pan_tool</span> ${o.n}</span>
+      ${otros.map(o=>`<button onclick="roba(${o.i},${qi})" class="w-full py-3 px-4 rounded-xl font-bold border-2 border-outline-variant bg-surface-container flex items-center justify-between active:translate-y-1 transition-all block-shadow-sm">
+        <span class="flex items-center gap-2">${S.avatars?renderAvatarCara(S.avatars[o.i], o.i, 32):""} ${o.n}</span>
         <span class="text-on-surface-variant text-sm">${S.scores[o.i]} pts</span></button>`).join("")}
       <button onclick="nadieSabe(${qi})" class="w-full py-3 rounded-xl font-bold text-on-surface-variant border-2 border-outline-variant/60 active:translate-y-1 transition-all">Nadie lo sabe</button>
     </div>
@@ -876,11 +888,12 @@ function nextTurn(){
 
 function scoreRow(p,i){
   const medals=["#DD9414","#9ca3af","#b45309"];
-  const esBot = BOT_NAMES.includes(p.n);
+  const av = p.av !== undefined ? p.av : String(i);
   return `<div class="flex items-center justify-between py-3 border-b-2 border-outline-variant last:border-0">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background:${i<3?medals[i]:"#cac4d4"}">${i+1}</div>
-      <span class="font-bold flex items-center gap-1">${esBot?'<span class="material-symbols-outlined text-on-surface-variant" style="font-size:17px;">explore</span>':""}${p.n}</span>
+      <span class="w-6 text-center font-display font-extrabold ${i<3?"":"text-on-surface-variant"}" style="${i<3?`color:${medals[i]}`:""}">${i+1}</span>
+      ${renderAvatarCara(av, i, 36)}
+      <span class="font-bold">${p.n}</span>
     </div>
     <span class="font-display font-extrabold text-primary">${p.s.toLocaleString("es")} pts</span></div>`;
 }
@@ -892,7 +905,7 @@ function finishGame(){
   burstConfetti(90, true);
   setTimeout(()=>burstConfetti(60, true), 700);
   setTimeout(()=>burstConfetti(40, true), 1500);
-  const sorted = S.players.map((n,i)=>({n,s:S.scores[i]})).sort((a,b)=>b.s-a.s);
+  const sorted = S.players.map((n,i)=>({n,s:S.scores[i],av:(S.avatars&&S.avatars[i])})).sort((a,b)=>b.s-a.s);
   S.lastResults = sorted;
   const tie = sorted.length>1 && sorted[0].s===sorted[1].s;
   const conf = ["#5B3FA8","#17A2A2","#D6336C","#DD9414","#D9531E"].map((c,i)=>
