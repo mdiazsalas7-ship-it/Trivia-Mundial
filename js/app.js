@@ -120,7 +120,7 @@ function confirmExit(){
   if(confirm("¿Salir de la partida? Se perderá el progreso.")){ FX.music.para(); go("home"); }
 }
 
-const APP_VER = "2.6";
+const APP_VER = "2.7";
 const AVATARES = ["😀","😎","🤓","🥳","😺","🐶","🦊","🐼","🦁","🐨","🐵","🦄","🐸","🐯","🐧","🦖","🤖","👽","🦉","🐙","🍕","⚽","🎸","🚀","🌟","🔥","🎯","👑","🎩","🦸","🧙","🧠"];
 function avatarColor(i){ return Object.values(CATS)[i%6].color; }
 
@@ -254,13 +254,7 @@ render.settings = () => {
     </div>
     <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-5 block-shadow-sm mt-5">
       <p class="font-bold mb-3">Audio</p>
-      <div class="bg-surface-container border-2 border-outline-variant rounded-2xl p-4 mb-4 block-shadow-sm">
-      <div class="flex justify-between text-sm font-bold mb-2"><span>Progreso del viaje</span><span class="text-primary">${Math.min(p.max, ETAPAS.length-1)+1} / ${ETAPAS.length}</span></div>
-      <div class="h-3 rounded-full bg-surface-container-lowest overflow-hidden">
-        <div class="h-full rounded-full transition-all" style="width:${Math.round((Math.min(p.max,ETAPAS.length-1)+1)/ETAPAS.length*100)}%;background:linear-gradient(90deg,#17A2A2,#5B3FA8);"></div>
-      </div>
-    </div>
-    <div class="grid gap-2.5">
+      <div class="grid gap-2.5">
         <button onclick="switchSonido()" class="w-full py-3 px-4 rounded-xl font-bold border-2 flex items-center justify-between transition-all active:translate-y-1 ${FX.on?"bg-primary-container text-white border-primary-container":"border-outline-variant text-on-surface-variant"}">
           <span class="flex items-center gap-2"><span class="material-symbols-outlined">${FX.on?"volume_up":"volume_off"}</span> Efectos de sonido</span>
           <span class="text-sm">${FX.on?"Activados":"Silenciados"}</span></button>
