@@ -172,8 +172,8 @@ P.natal = () => {
       <h2 class="font-titulo font-extrabold text-2xl">Elige tu tierra natal</h2>
       <p class="text-bruma text-sm mt-1">Desde aquí comenzará tu expansión. Elige bien: solo podrás atacar territorios vecinos.</p>
     </div>
-    <div id="lienzo" class="mt-4 overflow-x-auto"><div class="min-w-[1600px]">${mapaSVG({natal:true})}</div></div>
-    <div id="ficha" class="px-4"></div>
+    ${herramientasMapa()}
+    <div id="lienzo" class="mt-3 overflow-x-auto"><div id="contMapa" style="min-width:${anchoMapa()}px">${mapaSVG({natal:true})}</div></div>
   </main>`;
   centrar(760);
 };
@@ -183,51 +183,96 @@ function mapaSVG(opts){
   const o = opts || {};
   const mios = new Set(J.misTerritorios().map(t => t.id));
   const alcance = o.natal ? null : J.alcanzables();
+  const verNombres = S.nombres !== false;
 
-  const lineas = [];
-  RUTAS.forEach(r => {
+  const lineas = RUTAS.map(r => {
     const a = territorio(r.a), b = territorio(r.b);
-    const dash = r.c === 1 ? "5 5" : (r.c === 2 ? "3 7" : "2 9");
-    const op = r.c === 1 ? 0.5 : 0.32;
-    lineas.push(`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#5B6B8C" stroke-width="${r.c===1?2:1.5}" stroke-dasharray="${dash}" opacity="${op}"/>`);
-  });
+    const dash = r.c === 1 ? "6 5" : (r.c === 2 ? "3 8" : "2 10");
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#5B6B8C" stroke-width="${r.c===1?2:1.4}" stroke-dasharray="${dash}" opacity="${r.c===1?0.45:0.28}"/>`;
+  }).join("");
 
   const marcas = TERRITORIOS.map(t => {
     const d = J.duenoDe(t.id);
+    const conDueno = !!(d && d.cod);
     const mio = mios.has(t.id);
     const g = J.guarnicion(t.id);
     const puede = o.natal ? true : (alcance && alcance.has(t.id));
     const destac = o.destacado === t.id;
-    const rad = t.v === 3 ? 15 : (t.v === 2 ? 13 : 11);
-    let cuerpo;
-    if(d && d.jb){
-      cuerpo = `<g transform="translate(${-rad},${-rad*0.66})">
-        <foreignObject width="${rad*2}" height="${rad*1.34}">
-          <div xmlns="http://www.w3.org/1999/xhtml">${banderaMini(d.jb, rad*2)}</div>
-        </foreignObject></g>`;
+    const w = t.v === 3 ? 34 : (t.v === 2 ? 30 : 26);
+    const h = Math.round(w * 1.18);
+
+    let escudo;
+    if(conDueno){
+      const borde = mio ? "#E5B54A" : "#0B1020";
+      escudo = `<g transform="translate(${-w/2},${-h/2})">${escudoSVG(d.jb, w, { borde, grosor: mio ? 4 : 3 })}</g>`;
     } else {
-      cuerpo = `<circle r="${rad*0.72}" fill="#1A2033" stroke="#4A5878" stroke-width="2"/>`;
+      escudo = `<g transform="translate(${-w/2},${-h/2})">
+        <svg viewBox="0 0 50 62" width="${w}" height="${h}">
+          <path d="M2 2 L48 2 L48 32 C48 48 34 56 25 60 C16 56 2 48 2 32 Z" fill="#161D30" stroke="#3E4A68" stroke-width="3"/>
+          <text x="25" y="34" text-anchor="middle" font-size="22" font-weight="800" fill="#5E6A87">?</text>
+        </svg></g>`;
     }
-    const aro = mio ? `<circle r="${rad+4}" fill="none" stroke="#E5B54A" stroke-width="2.5"/>`
-             : (puede && !o.natal ? `<circle r="${rad+3}" fill="none" stroke="#C0392B" stroke-width="2" stroke-dasharray="3 3" opacity="0.85"/>` : "");
-    const pulso = destac ? `<circle r="${rad+10}" fill="${mio?"#E5B54A":"#C0392B"}" opacity="0.25"><animate attributeName="r" values="${rad+6};${rad+16};${rad+6}" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.3;0.05;0.3" dur="1.5s" repeatCount="indefinite"/></circle>` : "";
+
+    const halo = destac
+      ? `<circle r="${w*0.95}" fill="${mio?"#E5B54A":"#C0392B"}" opacity="0.22">
+           <animate attributeName="r" values="${w*0.75};${w*1.15};${w*0.75}" dur="1.5s" repeatCount="indefinite"/>
+           <animate attributeName="opacity" values="0.3;0.05;0.3" dur="1.5s" repeatCount="indefinite"/></circle>`
+      : (puede && !o.natal && !mio
+        ? `<circle r="${w*0.82}" fill="none" stroke="#C0392B" stroke-width="2" stroke-dasharray="4 4" opacity="0.75"/>` : "");
+
+    const cifra = `<g transform="translate(0,${h/2 - 2})">
+      <rect x="-15" y="-9" width="30" height="17" rx="8.5" fill="#05081C" stroke="${mio?"#E5B54A":(conDueno?"#7C2F26":"#3E4A68")}" stroke-width="2"/>
+      <text y="4" text-anchor="middle" font-size="12" font-weight="800" fill="${mio?"#E5B54A":"#E4E8F2"}">${g}</text></g>`;
+
+    const nombre = verNombres || destac || mio
+      ? `<text y="${h/2 + 24}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${mio?"#E5B54A":"#C7CEDF"}" style="paint-order:stroke;stroke:#05081C;stroke-width:5;stroke-linejoin:round">${t.n}</text>` : "";
+
     return `<g transform="translate(${t.x},${t.y})" style="cursor:pointer" onclick="tocarTerritorio('${t.id}')" role="button" aria-label="${t.n}">
-      ${pulso}${aro}${cuerpo}
-      <text y="${rad+13}" text-anchor="middle" font-size="11" font-weight="700" fill="#D8DCE8" style="paint-order:stroke;stroke:#05081C;stroke-width:4">${t.n}</text>
-      <text y="${-rad-5}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${mio?"#E5B54A":"#F0A8A8"}" style="paint-order:stroke;stroke:#05081C;stroke-width:4">${g}</text>
-    </g>`;
+      ${halo}${escudo}${cifra}${nombre}</g>`;
   }).join("");
 
   return `<svg id="svgMapa" viewBox="0 0 1600 800" width="1600" height="800" role="img" aria-label="Mapa del mundo">
-    <image href="${MAPA}" x="0" y="0" width="1600" height="800" preserveAspectRatio="none" opacity="0.92"/>
-    <g>${lineas.join("")}</g>${marcas}
+    <image href="${MAPA}" x="0" y="0" width="1600" height="800" preserveAspectRatio="none" opacity="0.9"/>
+    <g>${lineas}</g>${marcas}
   </svg>`;
 }
 
 function centrar(x){
   const w = document.getElementById("lienzo");
   if(!w) return;
-  w.scrollLeft = Math.max(0, x - w.clientWidth/2);
+  const k = anchoMapa() / 1600;
+  w.scrollLeft = Math.max(0, x * k - w.clientWidth/2);
+}
+
+const ZOOMS = [1, 1.4, 1.9, 2.5];
+function anchoMapa(){ return Math.round(1600 * (ZOOMS[S.zoom || 0])); }
+window.cambiarZoom = function(dir){
+  const z = (S.zoom || 0) + dir;
+  if(z < 0 || z >= ZOOMS.length) return;
+  const w = document.getElementById("lienzo");
+  const centro = w ? (w.scrollLeft + w.clientWidth/2) / anchoMapa() : 0.5;
+  S.zoom = z;
+  const cont = document.getElementById("contMapa");
+  if(cont) cont.style.minWidth = anchoMapa() + "px";
+  const btn = document.getElementById("zoomLbl");
+  if(btn) btn.textContent = Math.round(ZOOMS[z]*100) + "%";
+  if(w) w.scrollLeft = centro * anchoMapa() - w.clientWidth/2;
+  FX.tono(620,0.05,"triangle",0.06);
+};
+window.alternarNombres = function(btn){
+  S.nombres = S.nombres === false;
+  const svg = document.getElementById("svgMapa");
+  if(svg) svg.outerHTML = mapaSVG({ destacado: S.sel && S.sel.id, natal: S.pantalla === "natal" });
+  if(btn) btn.classList.toggle("borde-oro", S.nombres !== false);
+};
+function herramientasMapa(){
+  return `<div class="flex items-center justify-center gap-2 mt-2">
+    <button onclick="cambiarZoom(-1)" class="w-9 h-9 rounded-lg border-2 border-hierro text-hueso active:translate-y-0.5"><span class="material-symbols-outlined" style="font-size:18px">remove</span></button>
+    <span id="zoomLbl" class="text-bruma text-xs font-bold w-12 text-center">${Math.round(ZOOMS[S.zoom||0]*100)}%</span>
+    <button onclick="cambiarZoom(1)" class="w-9 h-9 rounded-lg border-2 border-hierro text-hueso active:translate-y-0.5"><span class="material-symbols-outlined" style="font-size:18px">add</span></button>
+    <button onclick="alternarNombres(this)" class="ml-2 px-3 h-9 rounded-lg border-2 ${S.nombres!==false?"borde-oro text-oro":"border-hierro text-bruma"} font-bold text-xs active:translate-y-0.5">
+      <span class="material-symbols-outlined align-middle" style="font-size:16px">label</span> Nombres</button>
+  </div>`;
 }
 
 P.mapa = () => {
@@ -239,71 +284,112 @@ P.mapa = () => {
       <span class="pastilla"><span class="material-symbols-outlined text-carmesi" style="font-size:15px">swords</span>${J.ataquesRestantes()} ataques hoy</span>
       <span class="pastilla"><span class="material-symbols-outlined text-bruma" style="font-size:15px">shield</span>${J.fronterasAbiertas()} frentes</span>
     </div>
-    <div id="lienzo" class="mt-3 overflow-x-auto"><div class="min-w-[1600px]">${mapaSVG({})}</div></div>
-    <div id="ficha" class="px-4"></div>
+    ${herramientasMapa()}
+    <div id="lienzo" class="mt-2 overflow-x-auto"><div id="contMapa" style="min-width:${anchoMapa()}px">${mapaSVG({})}</div></div>
   </main>${pieNav("mapa")}`;
   centrar(mios.length ? mios[0].x : 760);
-  if(mios.length) setTimeout(()=>tocarTerritorio(mios[0].id), 200);
+
 };
 
 window.tocarTerritorio = function(id){
   const t = territorio(id);
+  S.sel = { id, objetivo: J.guarnicion(id), mio: J.esMio(id) };
+  const svg = document.getElementById("svgMapa");
+  if(svg) svg.outerHTML = mapaSVG({ destacado:id, natal: S.pantalla === "natal" });
+  const w = document.getElementById("lienzo");
+  if(w){ const k = anchoMapa()/1600; w.scrollTo({ left: Math.max(0, t.x*k - w.clientWidth/2), behavior:"smooth" }); }
+  abrirCarta(id);
+};
+
+window.cerrarCarta = function(){
+  const m = document.getElementById("cartaTerr");
+  if(m){ m.classList.add("sale"); setTimeout(()=>m.remove(), 200); }
+};
+
+function abrirCarta(id){
+  const previa = document.getElementById("cartaTerr");
+  if(previa) previa.remove();
+  const t = territorio(id);
   const d = J.duenoDe(id);
+  const conDueno = !!(d && d.cod);
   const g = J.guarnicion(id);
   const mio = J.esMio(id);
-  const ficha = document.getElementById("ficha");
-  if(!ficha) return;
   const eligiendo = S.pantalla === "natal";
   const puede = J.puedeAtacar(id);
   const ruta = eligiendo ? null : J.rutaDeAtaque(id);
   const sinAtaques = J.ataquesRestantes() <= 0;
+  const cmd = conDueno && d.jc ? cmdPorId(d.jc) : null;
+  const vecinos = [...VECINOS[id]];
+  const amenazas = vecinos.filter(v => J.esMio(v)).length;
+  const color = mio ? "#E5B54A" : (conDueno ? "#C0392B" : "#4A5878");
 
   let accion;
   if(eligiendo){
-    accion = `<button onclick="fijarNatal('${id}')" class="w-full boton-oro py-3.5 rounded-xl font-titulo font-extrabold text-lg mt-4">
-      <span class="material-symbols-outlined align-middle">flag</span> Nacer en ${t.n}</button>`;
+    accion = `<button onclick="fijarNatal('${id}')" class="w-full boton-oro py-3.5 rounded-xl font-titulo font-extrabold text-lg">
+      <span class="material-symbols-outlined align-middle">flag</span> Nacer aquí</button>`;
   } else if(mio){
-    accion = `<button onclick="prepararAtaque('${id}')" ${sinAtaques?"disabled":""} class="w-full ${sinAtaques?"boton-muerto":"boton-hierro"} py-3.5 rounded-xl font-titulo font-extrabold text-lg mt-4">
+    accion = `<button onclick="cerrarCarta();prepararAtaque('${id}')" ${sinAtaques?"disabled":""} class="w-full ${sinAtaques?"boton-muerto":"boton-hierro"} py-3.5 rounded-xl font-titulo font-extrabold text-lg">
       <span class="material-symbols-outlined align-middle">shield</span> ${sinAtaques?"Sin ataques hoy":"Reforzar plaza"}</button>`;
   } else if(!puede){
-    accion = `<div class="mt-4 rounded-xl border-2 border-hierro p-3 text-center">
-      <p class="text-bruma text-sm"><span class="material-symbols-outlined align-middle text-bruma" style="font-size:17px">block</span> Fuera de tu alcance</p>
-      <p class="text-bruma/70 text-xs mt-1">Debes conquistar primero un territorio vecino.</p></div>`;
+    accion = `<div class="rounded-xl border-2 border-hierro p-3 text-center">
+      <p class="text-bruma text-sm font-bold"><span class="material-symbols-outlined align-middle" style="font-size:17px">block</span> Fuera de tu alcance</p>
+      <p class="text-bruma/70 text-xs mt-1">Conquista antes un territorio vecino.</p></div>`;
   } else {
-    const via = ruta && ruta.tipo === "mar"
-      ? `<span class="text-oro">Travesía · ${ruta.ruta.n}</span>` : `<span class="text-hueso">Por tierra desde ${ruta?territorio(ruta.desde).n:""}</span>`;
-    accion = `<p class="text-center text-xs mt-3">${via}</p>
-      <button onclick="prepararAtaque('${id}')" ${sinAtaques?"disabled":""} class="w-full ${sinAtaques?"boton-muerto":"boton-sangre"} py-3.5 rounded-xl font-titulo font-extrabold text-lg mt-2">
-      <span class="material-symbols-outlined align-middle">swords</span> ${sinAtaques?"Sin ataques hoy":"Atacar"}</button>`;
+    accion = `<button onclick="cerrarCarta();prepararAtaque('${id}')" ${sinAtaques?"disabled":""} class="w-full ${sinAtaques?"boton-muerto":"boton-sangre"} py-3.5 rounded-xl font-titulo font-extrabold text-lg">
+      <span class="material-symbols-outlined align-middle">${ruta&&ruta.tipo==="mar"?"sailing":"swords"}</span> ${sinAtaques?"Sin ataques hoy":"Atacar"}</button>`;
   }
 
-  ficha.innerHTML = `<div class="panel p-4 mt-4 aparece">
-    <div class="flex items-start gap-3">
-      <div class="flex-shrink-0 asta-mini">${d && d.jb ? banderaSVG(d.jb, 62) : `<div class="w-[62px] h-[41px] rounded border-2 border-hierro flex items-center justify-center"><span class="material-symbols-outlined text-bruma" style="font-size:18px">landscape</span></div>`}</div>
-      <div class="flex-1 min-w-0">
-        <p class="font-titulo font-extrabold text-lg leading-tight">${t.n}</p>
-        <p class="text-bruma text-sm">${REGIONES[t.r].n} · ${["","Aldea","Provincia","Gran plaza"][t.v]}</p>
-        <p class="text-sm mt-1">${d && d.cod ? (mio ? `<span class="text-oro font-bold">Tu territorio</span>` : `En manos de <span class="font-bold text-carmesi">${d.jn}</span>`) : `<span class="text-bruma">Guarnición local</span>`}</p>
+  const m = document.createElement("div");
+  m.id = "cartaTerr";
+  m.className = "velo";
+  m.innerHTML = `<div class="carta entra" style="border-color:${color}">
+    <button onclick="cerrarCarta()" class="absolute top-2 right-2 z-20 w-9 h-9 rounded-full bg-noche/80 border border-hierro flex items-center justify-center" aria-label="Cerrar">
+      <span class="material-symbols-outlined text-bruma" style="font-size:19px">close</span></button>
+
+    <div class="carta-arte">
+      ${cmd ? `<img src="${cmd.img}" alt="" class="w-full h-full object-cover object-top"/>`
+            : `<div class="w-full h-full flex items-center justify-center" style="background:radial-gradient(circle at 50% 32%, #232B42, #05081C)">
+                 <span class="material-symbols-outlined text-bruma" style="font-size:70px">castle</span></div>`}
+      <div class="carta-velo"></div>
+      <div class="absolute inset-x-0 top-0 p-3 flex items-start justify-between">
+        <span class="pastilla" style="border-color:${REGIONES[t.r].c}"><span class="w-2 h-2 rounded-full" style="background:${REGIONES[t.r].c}"></span>${REGIONES[t.r].n}</span>
       </div>
-      <div class="text-right flex-shrink-0">
-        <p class="text-bruma text-[10px] font-bold uppercase tracking-wider">Defensa</p>
-        <p class="font-titulo font-extrabold text-2xl ${mio?"text-oro":"text-carmesi"}">${g}</p>
+      <div class="absolute inset-x-0 bottom-0 p-4">
+        <p class="text-bruma text-[10px] font-bold uppercase tracking-[0.2em]">${["","Aldea","Provincia","Gran plaza"][t.v]}</p>
+        <h3 class="font-titulo font-extrabold text-3xl leading-none mt-0.5">${t.n}</h3>
+        <div class="flex items-end gap-3 mt-3">
+          ${conDueno ? `<div class="asta-mini flex-shrink-0">${banderaSVG(d.jb, 76)}</div>` : ""}
+          <div class="flex-1 min-w-0">
+            <p class="text-bruma text-[10px] font-bold uppercase tracking-[0.18em]">${mio?"Tu dominio":(conDueno?"Domina":"Sin dueño")}</p>
+            <p class="font-titulo font-extrabold text-lg leading-tight truncate ${mio?"text-oro":""}">${conDueno?d.jn:"Guarnición local"}</p>
+            ${cmd?`<p class="text-bruma text-xs">${cmd.t}</p>`:""}
+          </div>
+        </div>
       </div>
     </div>
-    ${accion}
+
+    <div class="p-4">
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Defensa</p><p class="font-titulo font-extrabold text-xl" style="color:${color}">${g}</p></div>
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Fronteras</p><p class="font-titulo font-extrabold text-xl">${vecinos.length}</p></div>
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Tuyas</p><p class="font-titulo font-extrabold text-xl ${amenazas?"text-oro":"text-bruma"}">${amenazas}</p></div>
+      </div>
+      ${!eligiendo && ruta ? `<p class="text-center text-xs mb-3 ${ruta.tipo==="mar"?"text-oro":"text-bruma"}">
+        <span class="material-symbols-outlined align-middle" style="font-size:15px">${ruta.tipo==="mar"?"sailing":"landscape"}</span>
+        ${ruta.tipo==="mar"?"Travesía · "+ruta.ruta.n:"Por tierra desde "+territorio(ruta.desde).n}</p>` : ""}
+      ${accion}
+    </div>
   </div>`;
-  const w = document.getElementById("lienzo");
-  if(w){
-    const svg = document.getElementById("svgMapa");
-    if(svg) svg.outerHTML = mapaSVG({ destacado:id, natal: S.pantalla === "natal" });
-    w.scrollTo({ left: Math.max(0, t.x - w.clientWidth/2), behavior:"smooth" });
-  }
-};
+  m.onclick = ev => { if(ev.target === m) cerrarCarta(); };
+  document.body.appendChild(m);
+  FX.tono(700, 0.05, "triangle", 0.07);
+}
 
 window.fijarNatal = async function(id){
   const t = territorio(id);
   const btn = event && event.target;
   if(btn) btn.disabled = true;
+  cerrarCarta();
   J.yo.natal = id; J.guardar();
   const ok = await J.reclamarNatal(id);
   if(!ok){ if(btn) btn.disabled = false; return alert("No se pudo reclamar el territorio. Revisa tu conexión."); }
@@ -513,7 +599,7 @@ P.cronica = () => {
       ${n.map(x => {
         const t = territorio(x.id);
         return `<div class="panel p-4 flex items-center gap-3 aparece" style="border-color:#C0392B">
-          <div class="asta-mini flex-shrink-0">${x.bandera?banderaSVG(x.bandera,56):""}</div>
+          <span class="flex-shrink-0">${x.bandera?escudoSVG(x.bandera,34,{borde:"#C0392B",grosor:3}):""}</span>
           <div class="flex-1 min-w-0">
             <p class="font-bold"><span class="text-carmesi">${x.quien}</span> te arrebató</p>
             <p class="font-titulo font-extrabold text-lg leading-tight">${t?t.n:x.id}</p>
@@ -530,42 +616,41 @@ P.cronica = () => {
 P.imperio = () => {
   const mios = J.misTerritorios();
   const fuerza = mios.reduce((a,t)=>a+J.guarnicion(t.id), 0);
-  const porRegion = {};
-  mios.forEach(t => porRegion[t.r] = (porRegion[t.r]||0)+1);
   const c = cmdPorId(J.yo.comandante);
+  const emb = EMBLEMAS.find(e => e.id === J.yo.bandera.emb);
   app.innerHTML = `${barra()}
   <main class="max-w-lg mx-auto px-4 py-5 pb-28">
-    <div class="panel overflow-hidden">
-      <div class="relative" style="height:150px">
-        <img src="${c.img}" alt="" class="w-full h-full object-cover object-top"/>
-        <div class="absolute inset-0" style="background:linear-gradient(transparent 25%, #0B1020f2 92%)"></div>
-        <div class="absolute inset-x-0 bottom-0 p-4 flex items-end gap-3">
-          <div class="asta-mini flex-shrink-0">${banderaSVG(J.yo.bandera, 74)}</div>
-          <div class="flex-1 min-w-0">
-            <p class="font-titulo font-extrabold text-xl leading-tight truncate">${J.yo.nombre}</p>
-            <p class="text-bruma text-sm">${c.t} · código ${J.yo.cod}</p>
-          </div>
+
+    <div class="carta-comandante entra">
+      <div class="carta-arte-grande">
+        <img src="${c.img}" alt="${c.n}" class="w-full h-full object-cover"/>
+        <div class="carta-velo"></div>
+        <div class="absolute top-3 left-3 asta-mini">${banderaSVG(J.yo.bandera, 84)}</div>
+        <div class="absolute inset-x-0 bottom-0 p-4">
+          <p class="text-bruma text-[10px] font-bold uppercase tracking-[0.22em]">${c.t} · ${emb?emb.n:""}</p>
+          <h2 class="font-titulo font-extrabold text-3xl leading-none mt-1">${J.yo.nombre}</h2>
+          <p class="text-hueso/60 text-xs italic mt-1.5">«${c.lema}»</p>
         </div>
       </div>
       <div class="grid grid-cols-3 gap-2 p-4">
-        <div class="caja"><p class="text-bruma text-[10px] uppercase tracking-wider">Territorios</p><p class="font-titulo font-extrabold text-2xl text-oro">${mios.length}</p></div>
-        <div class="caja"><p class="text-bruma text-[10px] uppercase tracking-wider">Fuerza</p><p class="font-titulo font-extrabold text-2xl">${fuerza}</p></div>
-        <div class="caja"><p class="text-bruma text-[10px] uppercase tracking-wider">Frentes</p><p class="font-titulo font-extrabold text-2xl text-carmesi">${J.fronterasAbiertas()}</p></div>
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Territorios</p><p class="font-titulo font-extrabold text-2xl text-oro">${mios.length}</p></div>
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Fuerza</p><p class="font-titulo font-extrabold text-2xl">${fuerza}</p></div>
+        <div class="caja"><p class="text-bruma text-[9px] uppercase tracking-wider">Frentes</p><p class="font-titulo font-extrabold text-2xl text-carmesi">${J.fronterasAbiertas()}</p></div>
       </div>
     </div>
 
     ${mios.length ? `<p class="text-bruma text-xs font-bold uppercase tracking-[0.18em] mt-5 mb-2">Tus dominios</p>
     <div class="grid gap-2">
-      ${mios.sort((a,b)=>J.guarnicion(b.id)-J.guarnicion(a.id)).map(t=>{
+      ${mios.slice().sort((a,b)=>J.guarnicion(b.id)-J.guarnicion(a.id)).map(t=>{
         const g = J.guarnicion(t.id);
         const amenaza = [...VECINOS[t.id]].filter(v=>!J.esMio(v)).length;
-        return `<button onclick="ir('mapa');setTimeout(()=>tocarTerritorio('${t.id}'),150)" class="panel p-3 flex items-center gap-3 text-left active:translate-y-0.5">
-          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${REGIONES[t.r].c}"></span>
+        return `<button onclick="ir('mapa');setTimeout(()=>tocarTerritorio('${t.id}'),200)" class="panel p-3 flex items-center gap-3 text-left active:translate-y-0.5">
+          <span class="flex-shrink-0">${escudoSVG(J.yo.bandera, 26, {borde:"#E5B54A",grosor:3})}</span>
           <div class="flex-1 min-w-0">
             <p class="font-bold truncate">${t.n}</p>
-            <p class="text-bruma text-xs">${amenaza} frontera${amenaza===1?"":"s"} expuesta${amenaza===1?"":"s"}</p>
+            <p class="text-bruma text-xs">${REGIONES[t.r].n} · ${amenaza} frontera${amenaza===1?"":"s"} expuesta${amenaza===1?"":"s"}</p>
           </div>
-          <span class="font-titulo font-extrabold ${g<25?"text-carmesi":"text-oro"}">${g}</span>
+          <span class="font-titulo font-extrabold text-lg ${g<25?"text-carmesi":"text-oro"}">${g}</span>
         </button>`;
       }).join("")}
     </div>` : `<div class="panel p-6 text-center mt-5">
@@ -587,7 +672,7 @@ P.rango = () => {
         const medalla = ["#E5B54A","#C3CBDA","#B87333"][i] || "#4A5878";
         return `<div class="panel p-3 flex items-center gap-3 ${mio?"borde-oro":""}">
           <span class="w-6 text-center font-titulo font-extrabold" style="color:${medalla}">${i+1}</span>
-          <div class="asta-mini flex-shrink-0">${im.bandera?banderaSVG(im.bandera,52):""}</div>
+          <span class="flex-shrink-0">${im.bandera?escudoSVG(im.bandera,30,{borde:mio?"#E5B54A":"#0B1020",grosor:3}):""}</span>
           <div class="flex-1 min-w-0">
             <p class="font-bold truncate">${im.nombre}${mio?' <span class="text-oro text-xs">(tú)</span>':""}</p>
             <p class="text-bruma text-xs">Fuerza ${im.fuerza}</p>

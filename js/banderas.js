@@ -134,3 +134,43 @@ function banderaMini(b, ancho){
     <rect width="60" height="40" fill="none" stroke="#05081C" stroke-width="3"/>
   </svg>`;
 }
+
+
+/* ---------- ESCUDO: la marca en el mapa ----------
+   Un escudo con los colores del jugador y su emblema al centro.
+   El emblema es lo que distingue a un imperio de otro de un vistazo. */
+function escudoSVG(bandera, ancho, opts){
+  const o = opts || {};
+  const f = Object.assign(banderaDefecto(), bandera || {});
+  const div = DIVISIONES.find(d => d.id === f.div) || DIVISIONES[0];
+  const emb = EMBLEMAS.find(e => e.id === f.emb);
+  const c1 = (HERALDO[f.c1] || HERALDO.gules).c;
+  const c2 = (HERALDO[f.c2] || HERALDO.oro).c;
+  const ec = (HERALDO[f.ec] || HERALDO.plata).c;
+  const alto = Math.round(ancho * 1.18);
+  const uid = "e" + Math.random().toString(36).slice(2,7);
+  const borde = o.borde || "#05081C";
+  const grosor = o.grosor || 3;
+  const forma = "M2 2 L48 2 L48 32 C48 48 34 56 25 60 C16 56 2 48 2 32 Z";
+  return `<svg viewBox="0 0 50 62" width="${ancho}" height="${alto}" style="display:block;overflow:visible;">
+    <defs><clipPath id="c${uid}"><path d="${forma}"/></clipPath></defs>
+    <g clip-path="url(#c${uid})">
+      <g transform="translate(-5 0) scale(1 1.55)">${div.d(c1, c2)}</g>
+      ${emb ? `<g transform="translate(25 28) scale(0.40) translate(-50 -50)" fill="${ec}" stroke="${ec}">${emb.d}</g>` : ""}
+      <path d="${forma}" fill="url(#lus${uid})"/>
+    </g>
+    <defs><linearGradient id="lus${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.16"/>
+      <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.3"/></linearGradient></defs>
+    <path d="${forma}" fill="none" stroke="${borde}" stroke-width="${grosor}"/>
+  </svg>`;
+}
+
+/* silueta del emblema suelta, para insignias */
+function emblemaSVG(id, tam, color){
+  const e = EMBLEMAS.find(x => x.id === id);
+  if(!e) return "";
+  return `<svg viewBox="0 0 100 100" width="${tam}" height="${tam}" style="display:block">
+    <g fill="${color}" stroke="${color}">${e.d}</g></svg>`;
+}

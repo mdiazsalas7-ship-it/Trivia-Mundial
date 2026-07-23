@@ -84,3 +84,21 @@ body{background:var(--noche);color:var(--hueso);margin:0;font-family:'Be Vietnam
 @media (prefers-reduced-motion: reduce){
   .aparece,.pulso,.late,.temblor,.temblor-fuerte,.capa-chispas i,.grito{animation:none!important;}
 }
+
+/* --- cartas --- */
+.velo{position:fixed;inset:0;z-index:9000;background:rgba(2,4,12,.78);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+.carta{position:relative;width:100%;max-width:370px;background:var(--panel);border:3px solid var(--hierro);
+  border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8);}
+.carta-arte{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;}
+.carta-velo{position:absolute;inset:0;background:linear-gradient(transparent 30%, #0B1020 94%);}
+@keyframes entra{from{opacity:0;transform:translateY(24px) scale(.94);}to{opacity:1;transform:none;}}
+.entra{animation:entra .28s cubic-bezier(.2,1.1,.4,1) both;}
+@keyframes sale{to{opacity:0;transform:scale(.96);}}
+.sale{animation:sale .18s ease-in both;}
+
+.carta-comandante{background:var(--panel);border:3px solid var(--oro);border-radius:18px;overflow:hidden;
+  box-shadow:0 14px 44px rgba(0,0,0,.65);}
+.carta-arte-grande{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;}
+
+@media (max-height:700px){ .carta-arte{aspect-ratio:4/3;} .carta-arte-grande{aspect-ratio:1/1;} }
