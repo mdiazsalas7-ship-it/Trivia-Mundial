@@ -2,63 +2,23 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /salas/{codigo} {
-      // Cualquiera con el código puede leer y jugar en la sala.
-      allow read: if true;
-
-      // Crear sala: solo con la estructura esperada y código de 4 caracteres.
-      allow create: if codigo.size() == 4
-                    && request.resource.data.jugadores.size() >= 1
-                    && request.resource.data.jugadores.size() <= 8
-                    && request.resource.data.fase == 'lobby';
-
-      // Actualizar: permitido durante la partida, con límite de jugadores.
-      allow update: if request.resource.data.jugadores.size() <= 8
-                    && request.resource.data.creada == resource.data.creada;
-
-      // Borrar: solo salas que ya quedaron vacías o viejas.
-      allow delete: if true;
-    }
-
-    match /viajeros/{codigo} {
-      // El ranking mundial es público de lectura.
+    // Territorios de Conquista Mundial
+    match /cq_terr/{territorio} {
+      // El mapa es público: cualquiera ve quién domina qué.
       allow read: if true;
 
       // Solo se aceptan documentos ligeros y con la forma esperada.
-      // Nunca se guardan fotos: el campo emoji es texto corto.
-      allow create, update: if codigo.size() == 8
-        && request.resource.data.nombre is string
-        && request.resource.data.nombre.size() <= 18
-        && request.resource.data.emoji is string
-        && request.resource.data.emoji.size() <= 200
-        && request.resource.data.estrellas is number
-        && request.resource.data.estrellas >= 0
-        && request.resource.data.estrellas <= 60
-        && request.resource.data.puntos is number
-        && request.resource.data.puntos >= 0
-        && request.resource.data.puntos <= 100000
-        && request.resource.data.etapa is number
-        && request.resource.data.etapa >= 0
-        && request.resource.data.etapa <= 20;
-
-      allow delete: if false;
-    }
-
-    match /territorios/{pais} {
-      // El mapa de conquista es público.
-      allow read: if true;
-
-      // Solo se acepta un documento ligero y bien formado.
-      allow create, update: if request.resource.data.nombre is string
-        && request.resource.data.nombre.size() <= 18
-        && request.resource.data.avatar is string
-        && request.resource.data.avatar.size() <= 200
-        && request.resource.data.codigo is string
-        && request.resource.data.codigo.size() <= 8
-        && request.resource.data.puntos is number
-        && request.resource.data.puntos >= 0
-        && request.resource.data.puntos <= 200
-        && request.resource.data.fecha is number;
+      // No se guardan imágenes ni datos personales.
+      allow create, update: if request.resource.data.keys().hasOnly(['cod','jn','jb','jc','g','ts'])
+        && request.resource.data.cod is string
+        && request.resource.data.cod.size() <= 8
+        && request.resource.data.jn is string
+        && request.resource.data.jn.size() >= 1
+        && request.resource.data.jn.size() <= 16
+        && request.resource.data.g is number
+        && request.resource.data.g >= 0
+        && request.resource.data.g <= 130
+        && request.resource.data.ts is number;
 
       allow delete: if false;
     }

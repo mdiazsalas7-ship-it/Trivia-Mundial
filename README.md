@@ -1,171 +1,73 @@
-# Trivia Mundial
+# Conquista Mundial
 
-Juego de trivia con tarjetas 3D y retos para jugar en grupo (2 a 6 jugadores, pasa y juega). Preguntas de cultura, ciencia, historia, entretenimiento y deportes, más la tarjeta Sorpresa que vale doble.
+Juego de conquista territorial asíncrona. Ganas países a jugadores reales de todo el mundo respondiendo preguntas: cada territorio guarda la marca del último que lo tomó, y para arrebatárselo hay que superarla.
 
-**Stack:** HTML + Tailwind (CDN) + JavaScript vanilla. Sitio 100% estático: no requiere build, backend ni base de datos. Ideal para validar el producto.
+**Stack:** HTML + Tailwind (CDN) + JavaScript vanilla + Firestore. Sitio estático, sin build.
 
-## Estructura del proyecto
+## Cómo se juega
+
+1. Eliges **comandante** (el rostro que verán tus enemigos), diseñas tu **bandera** y tu nombre de guerra.
+2. Eliges tu **tierra natal**: tu primer territorio, gratis.
+3. Solo puedes atacar territorios que **toquen tu imperio**, por tierra o por rutas marítimas.
+4. Cada batalla son **5 asaltos** de 15 segundos. Cuanto más rápido respondes, más fuerte golpeas.
+5. Si superas la defensa enemiga, el territorio es tuyo y ondea tu bandera para todo el mundo.
+
+### Reglas de la guerra
+
+| Regla | Efecto |
+|---|---|
+| Herencia | Al conquistar heredas el **70%** de la muralla enemiga (o el 60% de tu marca, lo que sea mayor) |
+| Asedio | Cada ataque fallido debilita la plaza un **5%** |
+| Decaimiento | Las guarniciones caen un **3% al día** si no se refuerzan |
+| Tope | Ninguna plaza pasa de **130** de defensa: todo es conquistable |
+| Energía | **6 ataques al día** por jugador |
+| Sin bloqueo | Si te quedas sin territorios, puedes atacar cualquier punto del mapa |
+
+El mundo nunca está vacío: los territorios sin dueño tienen **guarnición local** proporcional a su valor, y los pasos estratégicos (Gibraltar, Suez, Panamá, Bering…) defienden un 25% más.
+
+## Estructura
 
 ```
-trivia-mundial/
-├── index.html          # Punto de entrada y configuración de Tailwind
-├── css/
-│   └── styles.css      # Animaciones y estilos custom (flip 3D, confeti, sombras)
+├── index.html
+├── css/styles.css
 ├── js/
-│   ├── data.js         # Contenido del juego: categorías, preguntas y retos
-│   └── app.js          # Motor del juego: pantallas, turnos, timer, puntajes
-├── assets/
-│   ├── logo.webp       # Logo oficial
-│   └── card-deportes.webp  # Arte de la tarjeta Deportes
-├── vercel.json         # Configuración de despliegue
-└── README.md
+│   ├── preguntas.js   500 preguntas y categorías
+│   ├── mundo.js       73 territorios, fronteras y 41 rutas marítimas
+│   ├── banderas.js    diseñador heráldico (972.000 combinaciones)
+│   ├── fx.js          tambores de guerra, sonido y efectos
+│   ├── firebase.js    configuración
+│   ├── juego.js       motor: guarniciones, alcance, conquista
+│   ├── app.js         pantallas y batalla
+│   └── instalar.js    instalación como app
+├── firestore.rules
+├── sw.js · manifest.webmanifest · vercel.json
+└── assets/  mapa, comandantes, logo, música
 ```
 
-Para agregar preguntas o retos solo edita `js/data.js` — no hace falta tocar la lógica.
+Para añadir territorios o cambiar fronteras solo se edita `js/mundo.js`.
 
-## Cómo subirlo a GitHub
+## Puesta en marcha
 
-**Opción A — desde la web (sin instalar nada):**
-1. Entra a [github.com](https://github.com) → botón **New repository**.
-2. Nombre: `trivia-mundial` → **Create repository** (público o privado, da igual para Vercel).
-3. En el repo vacío: **uploading an existing file** → arrastra TODO el contenido de esta carpeta (incluyendo las subcarpetas `css`, `js` y `assets`).
-4. **Commit changes**.
+**GitHub → Vercel:** sube el contenido del repo, importa en Vercel con preset *Other* y despliega. Sin build.
 
-**Opción B — con git desde la terminal:**
-```bash
-cd trivia-mundial
-git init
-git add .
-git commit -m "Trivia Mundial v1: MVP jugable"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/trivia-mundial.git
-git push -u origin main
-```
+**Firebase (obligatorio):** consola → Firestore Database → pestaña **Rules** → pega `firestore.rules` → *Publish*. Sin esto, el mapa no cargará.
 
-## Cómo desplegarlo en Vercel
+Los datos viajan en la colección `cq_terr`, un documento por territorio con `cod` (código del jugador), `jn` (nombre), `jb` (bandera), `jc` (comandante), `g` (guarnición) y `ts` (fecha). No se guardan imágenes ni datos personales.
 
-1. Entra a [vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub.
-2. **Add New → Project** → importa el repositorio `trivia-mundial`.
-3. Framework preset: **Other**. No cambies nada más (no hay build: Output Directory vacío o `.`).
-4. **Deploy**. En menos de un minuto tendrás tu URL: `https://trivia-mundial-xxxx.vercel.app`.
+## Equilibrio (simulado sobre 3.000 batallas)
 
-Desde ese momento, cada `git push` a `main` publica automáticamente la nueva versión.
+| Defensa | Novato | Medio | Experto |
+|---|---|---|---|
+| Aldea (28) | 84% | 98% | 100% |
+| Provincia (48) | 65% | 90% | 100% |
+| Gran plaza (70) | 37% | 72% | 97% |
+| Reforzada (100) | 9% | 29% | 70% |
+| Tope (130) | 1% | 3% | 11% |
 
-## Probar en local
+## Siguiente fase (v2)
 
-Basta con abrir `index.html` en el navegador, o si prefieres un servidor local:
-```bash
-npx serve .
-```
-
-## Hoja de ruta
-
-- **v1 (esta):** pasa y juega en un solo dispositivo. Validación con usuarios reales.
-- **v2:** más preguntas por categoría, niveles de dificultad, sonidos, guardar historial de partidas en el dispositivo.
-- **v3:** salas multijugador en tiempo real (cada quien desde su celular) — requiere backend (por ejemplo Supabase o Firebase) y es el paso previo a monetizar.
-
-
-## Modo multijugador en línea (Firebase)
-
-La app tiene dos modos: **Jugar aquí** (pasa y juega en un dispositivo, funciona sin internet) y **Jugar en línea** (cada jugador desde su celular, con código de sala de 4 letras).
-
-El backend es **Firestore** y la configuración vive en `js/firebase.js`.
-
-### Activar Firestore (una sola vez)
-
-1. Entra a la [consola de Firebase](https://console.firebase.google.com) → proyecto `trivia-mundial-3b4ee`.
-2. Menú **Build → Firestore Database → Create database**.
-3. Elige **Start in production mode** y la región más cercana (por ejemplo `us-west1` o `southamerica-east1`).
-4. Ve a la pestaña **Rules**, borra lo que haya y pega el contenido del archivo `firestore.rules` de este repo → **Publish**.
-
-Sin ese último paso el modo en línea mostrará un error de permisos.
-
-### Cómo se juega en línea
-
-1. Un jugador toca **Jugar en línea → Crear sala** y recibe un código (ej. `QZ4P`).
-2. Lo comparte por WhatsApp con el botón **Compartir** (manda el enlace y el código juntos).
-3. Los demás abren la web, tocan **Jugar en línea**, escriben su nombre y el código.
-4. El anfitrión ajusta preguntas y segundos, y toca **¡Comenzar partida!**.
-5. Todos ven en vivo el turno, el reloj y el marcador. Los retos se cumplen por videollamada y el grupo vota desde sus celulares.
-
-Máximo 8 jugadores por sala. El anfitrión tiene un botón **Saltar turno** por si alguien pierde conexión.
-
-### Modelo de datos
-
-Colección `salas`, un documento por partida (el ID es el código):
-
-| Campo | Descripción |
-|---|---|
-| `fase` | `lobby`, `mazo`, `pregunta`, `resultado`, `reto`, `fin` |
-| `jugadores` | Lista con `id`, `nombre`, `pts`, `fifty` |
-| `orden`, `mano`, `carta` | Preguntas barajadas, las 4 en mesa, la elegida |
-| `turno`, `hechas` | Índice del jugador en turno y preguntas jugadas |
-| `deadline` | Marca de tiempo en que vence el reloj (así todos van sincronizados) |
-| `qPorJugador`, `segundos` | Configuración de la partida |
-
-El banco actual tiene **500 preguntas** (unas 83 por categoría) y **40 retos**, todo en `js/data.js`. Moverlas a Firestore es el siguiente paso natural cuando quieras editarlas sin tocar código.
-
-
-## App instalable (PWA)
-
-La web es instalable como app en Android, iPhone, Windows y Mac.
-
-- **Android / Chrome:** aparece un banner “Instalar Trivia Mundial” a los pocos segundos, o desde el menú ⋮ → *Instalar aplicación*.
-- **iPhone / Safari:** botón *Compartir* → *Añadir a pantalla de inicio* (el banner muestra la instrucción automáticamente).
-- **Escritorio:** icono de instalar en la barra de direcciones.
-- También hay un botón permanente en **Ajustes → Instalar en este dispositivo**.
-
-Una vez instalada se abre a pantalla completa, sin barra del navegador, y **funciona sin internet** gracias al service worker (`sw.js`). El único modo que necesita conexión es el multijugador en línea.
-
-Archivos implicados: `manifest.webmanifest`, `sw.js`, `js/install.js`, `favicon.ico` y la carpeta `icons/`.
-
-**Importante:** la instalación solo funciona sobre HTTPS (Vercel lo da automáticamente) o en `localhost`. Abriendo el archivo directamente desde el disco no aparecerá el botón.
-
-Al publicar una versión nueva, sube el número de `VERSION` en `sw.js` (por ejemplo `tm-v4`) para que los dispositivos actualicen la caché.
-
-
-## Cambiar la música de fondo
-
-El juego trae una música generada por código como respaldo. Para usar una pista real:
-
-1. Consigue una pista **libre de regalías con licencia comercial** (Uppbeat, Epidemic Sound, Artlist, Pixabay Music, Biblioteca de Audio de YouTube) o encárgala a un compositor. **No uses canciones comerciales de artistas conocidos**: requieren licencias de sincronización y máster que cuestan miles de dólares, y las tiendas retiran la app ante un reclamo.
-2. Busca una pista pensada para bucle, de 1 a 3 minutos, sin voces (las voces distraen durante las preguntas).
-3. Guárdala como `assets/music.mp3` (idealmente menos de 2 MB; conviértela a 128 kbps mono si hace falta).
-4. Súbela al repo y listo: la app la detecta sola y deja de usar la música generada.
-5. Añade `./assets/music.mp3` a la lista `SHELL` de `sw.js` si quieres que también funcione sin conexión.
-
-Guarda la factura o el certificado de licencia de la pista: las tiendas de apps pueden pedirlo.
-
-
-## Sincronización en la nube (ranking mundial)
-
-El progreso de la **Vuelta al Mundo** puede sincronizarse para competir en un ranking mundial y recuperarlo en otro dispositivo. Se activa en **Ajustes → Ranking mundial y respaldo**.
-
-**Qué se envía y qué no:**
-
-| Se sincroniza | Se queda solo en el dispositivo |
-|---|---|
-| Nombre del jugador | **Fotos de perfil** (nunca salen del móvil) |
-| Emoji | Perfiles completos |
-| Estrellas y puntos | Partidas en grupo |
-| Etapa alcanzada | Ajustes de audio |
-
-Si un jugador usa foto, en el ranking mundial aparece con un emoji genérico.
-
-**Código de viajero:** al activar la sincronización, cada perfil recibe un código de 8 caracteres. Con ese código se recupera el viaje en otro celular desde *Recuperar viaje con un código*.
-
-**Configuración necesaria en Firebase:** vuelve a publicar `firestore.rules` (incluye la colección `viajeros`). Si el ranking aparece vacío, revisa en la consola de Firebase si pide crear un índice compuesto para `estrellas` + `puntos`; el código funciona igual sin él, ordenando en el cliente.
-
-
-## Conquista Mundial
-
-Modo asíncrono contra jugadores reales de todo el mundo, sobre el mapa mundi.
-
-- Hay **30 territorios** conquistables. Cada uno guarda quién lo domina y con cuántos puntos.
-- Para conquistar uno respondes **5 preguntas** (15 segundos cada una, con bonus por rapidez). Si superas la marca del dueño actual, el país pasa a ser tuyo y tu personaje aparece plantado ahí para todo el mundo.
-- Cada jugador tiene **5 ataques al día**, que se recargan solos. Evita que alguien conquiste el mapa entero en una tarde y reparte el juego a lo largo de la semana.
-- Requiere activar la sincronización (Ajustes) porque compite contra jugadores reales.
-
-**Datos en Firestore:** colección `territorios`, un documento por país con `nombre`, `avatar`, `codigo`, `puntos` y `fecha`. Publica de nuevo `firestore.rules` para habilitarlo.
-
-**Ideas para más adelante:** temporadas mensuales con reinicio y campeón coronado, bonus por conquistar países vecinos, notificación cuando alguien te robe un territorio, y cosméticos para el personaje (sombreros, marcos) como fuente de ingresos.
+- Oro por territorio y **flotas** para cruzar océanos con coste
+- **Temporadas** mensuales con reinicio y coronación
+- Peaje en los pasos estratégicos
+- Notificación cuando alguien te arrebate un territorio
+- Más comandantes
